@@ -76,7 +76,7 @@ class TransactionController extends Controller
             $walletService = app(\App\Services\WalletService::class);
             $wallet = $walletService->getWallet($transaction->user);
 
-            $walletService->credit($wallet, $transaction->retailer_charged, 'refund', $transaction->id, "Refund for transaction #{$transaction->receipt_number}");
+            $walletService->credit($wallet, (float) ($transaction->retailer_charged ?? 0), 'refund', $transaction->id, "Refund for transaction #{$transaction->receipt_number}");
 
             $transaction->update([
                 'status' => 'refunded',

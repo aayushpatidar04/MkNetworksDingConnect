@@ -11,11 +11,11 @@
         "fakerphp/faker": "*",
         "guzzlehttp/guzzle": "*",
         "inertiajs/inertia-laravel": "^2.0",
-        "laravel/breeze": "*",
+        
         "laravel/framework": "*",
         "laravel/pint": "*",
-        "laravel/pulse": "*",
-        "laravel/sail": "*",
+        
+        
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "*",
         "maatwebsite/excel": "*",
@@ -26,13 +26,11 @@
         "pusher/pusher-php-server": "*",
         "razorpay/razorpay": "*",
         "spatie/laravel-activitylog": "*",
-        "spatie/laravel-ignition": "*",
         "spatie/laravel-permission": "*",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {
-        "laravel/pail": "^1.2.5",
-        "laravel/pao": "^1.0.6"
+        "laravel/pail": "^1.2.5"
     },
     "autoload": {
         "psr-4": {
