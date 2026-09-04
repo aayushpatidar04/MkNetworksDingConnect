@@ -1,22 +1,40 @@
 <script setup>
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import { Link } from '@inertiajs/vue3';
+import { ref } from "vue";
+import MkLogo from "@/Components/MkLogo.vue";
 </script>
 
 <template>
     <div
-        class="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0 dark:bg-gray-900"
+        class="min-h-screen flex items-center justify-center bg-dark-900 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
     >
-        <div>
-            <Link href="/">
-                <ApplicationLogo class="h-20 w-20 fill-current text-gray-500" />
-            </Link>
+        <!-- Background Effects -->
+        <div class="absolute inset-0 overflow-hidden">
+            <div
+                class="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl"
+            ></div>
+            <div
+                class="absolute -bottom-40 -left-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl"
+            ></div>
         </div>
 
-        <div
-            class="mt-6 w-full overflow-hidden bg-white px-6 py-4 shadow-md sm:max-w-md sm:rounded-lg dark:bg-gray-800"
-        >
-            <slot />
+        <div class="max-w-md w-full relative z-10">
+            <!-- Logo -->
+            <div class="flex justify-center mb-8">
+                <Link href="/">
+                    <MkLogo size="xl" />
+                </Link>
+            </div>
+
+            <!-- Card -->
+            <div
+                class="bg-dark-800 rounded-2xl shadow-2xl border border-dark-600 p-8"
+            >
+                <slot />
+            </div>
+
+            <p class="mt-6 text-center text-sm text-dark-400">
+                MK Network Communications. All rights reserved.
+            </p>
         </div>
     </div>
 </template>

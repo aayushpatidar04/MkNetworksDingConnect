@@ -1,53 +1,91 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3'
-import RetailerLayout from '@/Layouts/RetailerLayout.vue'
-defineOptions({ layout: RetailerLayout })
+import { Head, Link } from "@inertiajs/vue3";
+import RetailerLayout from "@/Layouts/RetailerLayout.vue";
+defineOptions({ layout: RetailerLayout });
 
-const props = defineProps({ wallet: Object, availableBalance: Number, topups: Object })
+const props = defineProps({
+    wallet: Object,
+    availableBalance: Number,
+    topups: Object,
+});
 </script>
 
 <template>
- <Head title="Wallet - MK Network" />
- <div class="space-y-6">
- <h1 class="text-2xl font-bold text-gray-900">My Wallet</h1>
+    <Head title="Wallet - MK Network" />
+    <div class="space-y-6">
+        <h1 class="text-3xl font-bold text-white mb-1">My Wallet</h1>
+        <p class="text-dark-300 mb-6">
+            Manage your wallet balance and top-up history
+        </p>
 
- <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
- <div class="bg-white rounded-xl p-6 shadow-sm">
- <div class="text-sm text-gray-500">Wallet Balance</div>
- <div class="text-3xl font-bold text-gray-900 mt-1">Rs. {{ Number(wallet.balance).toFixed(2) }}</div>
- </div>
- <div class="bg-white rounded-xl p-6 shadow-sm">
- <div class="text-sm text-gray-500">Available Balance</div>
- <div class="text-3xl font-bold text-green-600 mt-1">Rs. {{ Number(availableBalance).toFixed(2) }}</div>
- <div class="text-xs text-gray-400 mt-1">{{ Number(wallet.balance - availableBalance).toFixed(2) }} on hold</div>
- </div>
- <div class="bg-white rounded-xl p-6 shadow-sm">
- <div class="text-sm text-gray-500">Currency</div>
- <div class="text-3xl font-bold text-gray-900 mt-1">{{ wallet.currency }}</div>
- </div>
- </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="stat-gradient-1 rounded-2xl p-6 card-hover">
+                <div class="text-sm text-blue-100">Wallet Balance</div>
+                <div class="text-3xl font-bold text-white mt-1">
+                    Rs. {{ Number(wallet.balance).toFixed(2) }}
+                </div>
+            </div>
+            <div class="stat-gradient-2 rounded-2xl p-6 card-hover">
+                <div class="text-sm text-green-100">Available Balance</div>
+                <div class="text-3xl font-bold text-white mt-1">
+                    Rs. {{ Number(availableBalance).toFixed(2) }}
+                </div>
+            </div>
+            <div
+                class="bg-dark-800 rounded-2xl p-6 border border-dark-600 flex items-center justify-between"
+            >
+                <div>
+                    <div class="text-sm text-dark-300">Need More Balance?</div>
+                    <div class="text-sm text-dark-400 mt-1">
+                        Top up your wallet instantly
+                    </div>
+                </div>
+                <Link
+                    href="/retailer/wallet/topup"
+                    class="btn-primary px-6 py-3 bg-primary text-white rounded-xl font-medium"
+                    >Top Up</Link
+                >
+            </div>
+        </div>
 
- <div class="flex gap-3">
- <Link href="/retailer/wallet/topup" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Top Up Wallet</Link>
- <Link href="/retailer/wallet/ledger" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">View Ledger</Link>
- </div>
-
- <div class="bg-white rounded-xl shadow-sm">
- <div class="p-6 border-b"><h3 class="text-lg font-semibold">Recent Top-ups</h3></div>
- <table class="min-w-full divide-y">
- <thead class="bg-gray-50">
- <tr><th class="px-4 py-3 text-left text-xs text-gray-500">Date</th><th class="px-4 py-3 text-left text-xs text-gray-500">Amount</th><th class="px-4 py-3 text-left text-xs text-gray-500">Method</th><th class="px-4 py-3 text-left text-xs text-gray-500">Status</th></tr>
- </thead>
- <tbody class="divide-y">
- <tr v-for="topup in topups.data" :key="topup.id">
- <td class="px-4 py-3 text-sm">{{ topup.created_at }}</td>
- <td class="px-4 py-3 text-sm font-medium">Rs. {{ Number(topup.amount).toFixed(2) }}</td>
- <td class="px-4 py-3 text-sm capitalize">{{ topup.payment_method }}</td>
- <td class="px-4 py-3"><span :class="['px-2 py-0.5 text-xs rounded-full', topup.status === 'completed' ? 'bg-green-100 text-green-700' : topup.status === 'failed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700']">{{ topup.status }}</span></td>
- </tr>
- <tr v-if="!topups.data?.length"><td colspan="4" class="px-4 py-8 text-center text-gray-500">No top-ups yet</td></tr>
- </tbody>
- </table>
- </div>
- </div>
+        <!-- Top Up History -->
+        <div
+            class="bg-dark-800 rounded-2xl border border-dark-600 overflow-hidden"
+        >
+            <div class="p-6 border-b border-dark-600">
+                <h3 class="text-lg font-semibold text-white">Top-Up History</h3>
+            </div>
+            <div v-if="topups.data?.length" class="divide-y divide-dark-600">
+                <div
+                    v-for="topup in topups.data"
+                    :key="topup.id"
+                    class="p-4 flex items-center justify-between hover:bg-dark-700 transition"
+                >
+                    <div>
+                        <div class="font-medium text-white">
+                            Rs. {{ Number(topup.amount).toFixed(2) }}
+                        </div>
+                        <div class="text-sm text-dark-400">
+                            {{ topup.payment_method }} · {{ topup.created_at }}
+                        </div>
+                    </div>
+                    <span
+                        :class="[
+                            'px-3 py-1 text-xs rounded-full font-medium',
+                            topup.status === 'success'
+                                ? 'bg-accent/20 text-accent-light'
+                                : topup.status === 'failed'
+                                  ? 'bg-red-500/20 text-red-400'
+                                  : 'bg-yellow-500/20 text-yellow-400',
+                        ]"
+                    >
+                        {{ topup.status }}
+                    </span>
+                </div>
+            </div>
+            <div v-else class="p-8 text-center text-dark-400">
+                No top-ups yet
+            </div>
+        </div>
+    </div>
 </template>

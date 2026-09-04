@@ -1,30 +1,17 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import AdminLayout from "@/Layouts/AdminLayout.vue";
+import { Head } from "@inertiajs/vue3";
+
+defineOptions({ layout: AdminLayout });
 </script>
 
 <template>
-    <Head title="Dashboard" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <h2
-                class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200"
-            >
-                Dashboard
-            </h2>
-        </template>
-
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div
-                    class="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800"
-                >
-                    <div class="p-6 text-gray-900 dark:text-gray-100">
-                        You're logged in!
-                    </div>
-                </div>
-            </div>
-        </div>
-    </AuthenticatedLayout>
+    <Head title="Dashboard - Admin" />
+    <div class="text-center py-20">
+        <h2 class="text-2xl font-bold text-white mb-2">Dashboard</h2>
+        <p class="text-dark-300">Welcome to MK Network Admin Panel</p>
+        <p class="text-dark-400 text-sm mt-4">
+            Use the sidebar to navigate between sections
+        </p>
+    </div>
 </template>
