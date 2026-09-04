@@ -51,7 +51,6 @@ class TransactionController extends Controller
             'failed' => Transaction::where('status', 'failed')->count(),
             'pending' => Transaction::where('status', 'pending')->count(),
             'total_volume' => Transaction::where('status', 'success')->sum('amount'),
-            'total_commission' => Transaction::where('status', 'success')->sum('commission_amount'),
         ];
 
         $retailers = User::where('role', 'retailer')->get(['id', 'name', 'shop_name']);

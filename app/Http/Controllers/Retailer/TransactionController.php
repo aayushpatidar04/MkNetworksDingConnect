@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Retailer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
-use App\Services\CommissionService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

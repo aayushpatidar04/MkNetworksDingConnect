@@ -1,6 +1,8 @@
 <script setup>
 import { Head, Link } from "@inertiajs/vue3";
 import MkLogo from "@/Components/MkLogo.vue";
+import Toast from "@/Components/Toast.vue";
+import { useToast, toasts } from "@/composables/useToast.js";
 </script>
 
 <template>
@@ -9,7 +11,6 @@ import MkLogo from "@/Components/MkLogo.vue";
             <title>
                 {{ $page.component?.props?.pageTitle || "MK Network" }}
             </title>
-            <link rel="icon" type="image/png" href="/favicon.png" />
         </Head>
 
         <!-- Top Navigation -->
@@ -37,7 +38,12 @@ import MkLogo from "@/Components/MkLogo.vue";
                         >
                         <Link
                             href="/contact"
-                            class="px-4 py-2 rounded-lg text-sm font-medium text-dark-300 hover:text-white hover:bg-dark-700 transition"
+                            class="px-4 py-2 rounded-lg text-sm font-medium transition"
+                            :class="
+                                $page.url === '/contact'
+                                    ? 'bg-dark-700 text-white'
+                                    : 'text-dark-300 hover:text-white hover:bg-dark-700'
+                            "
                             >Contact</Link
                         >
                     </nav>
@@ -52,7 +58,7 @@ import MkLogo from "@/Components/MkLogo.vue";
                         <Link
                             href="/register"
                             class="btn-primary px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium"
-                            >Register</Link
+                            >Become a Retailer</Link
                         >
                     </div>
                 </div>
@@ -62,6 +68,7 @@ import MkLogo from "@/Components/MkLogo.vue";
         <!-- Page Content -->
         <main class="flex-1">
             <slot />
+            <Toast />
         </main>
 
         <!-- Footer -->
@@ -79,12 +86,20 @@ import MkLogo from "@/Components/MkLogo.vue";
                         </p>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-white mb-3">Platform</h3>
+                        <h3 class="font-semibold text-white mb-3">Contact</h3>
                         <div class="space-y-2">
+                            <a
+                                href="mailto:support@mknetwork.com"
+                                class="block text-sm text-dark-400 hover:text-white transition"
+                                >support@mknetwork.com</a
+                            >
+                            <span class="block text-sm text-dark-400"
+                                >+91 96915 65883</span
+                            >
                             <Link
                                 href="/contact"
-                                class="block text-sm text-dark-400 hover:text-white transition"
-                                >Contact</Link
+                                class="block text-sm text-primary-light hover:text-primary transition"
+                                >Send Message</Link
                             >
                         </div>
                     </div>

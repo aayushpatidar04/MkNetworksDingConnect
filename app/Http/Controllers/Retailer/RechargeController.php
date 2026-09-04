@@ -7,7 +7,6 @@ use App\Models\Transaction;
 use App\Jobs\ProcessRechargeJob;
 use App\Models\Operator;
 use App\Models\Country;
-use App\Services\CommissionService;
 use App\Services\DingConnectService;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
@@ -15,7 +14,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-
 
 class RechargeController extends Controller
 {
@@ -43,40 +41,33 @@ class RechargeController extends Controller
         return response()->json(['operators' => $operators]);
     }
 
-    public function getPricing(Request $request, CommissionService $commissionService, DingConnectService $dingService)
+    public function getPricing(Request $request, DingConnectService $dingService)
     {
         $request->validate([
             'operator_id' => 'required|exists:operators,id',
-            'amount' => 'required|numeric|min:10|max:10000',
+            'amount' => ['required', 'numeric', 'min:' . config('platform.pricing.min_recharge', 10), 'max:' . config('platform.pricing.max_recharge', 10000)],
         ]);
 
         $operator = Operator::findOrFail($request->operator_id);
 
-        // Get DingConnect cost (in production, this would be from DingConnect API)
-        // For now, we simulate or use a fixed rate
-        $dingCost = round($request->amount * 0.98, 2); // Assume 2% below retail
-
-        $pricing = $commissionService->calculatePricing(
-            $dingCost,
-            $request->amount,
-            $operator->id,
-            $operator->country_id,
-            $request->user()->commission_tier
-        );
+        // Pass-through pricing: retailer pays the same as recharge amount
+        // In production, get actual DingConnect cost from API
+        $dingCost = (float) $request->amount;
+        $retailerCharged = $dingCost; // No markup - retailer pays same as Ding cost
 
         return response()->json([
             'ding_cost' => $dingCost,
-            ...$pricing,
+            'retailer_charged' => $retailerCharged,
         ]);
     }
 
     public function initiate(Request $request)
     {
         $request->validate([
-            'mobile_number' => 'required|string|min:10|max:15',
+            'mobile_number' => ['required', 'string', 'min:10', 'max:15'],
             'operator_id' => 'required|exists:operators,id',
             'country_id' => 'required|exists:countries,id',
-            'amount' => 'required|numeric|min:10|max:10000',
+            'amount' => ['required', 'numeric', 'min:' . config('platform.pricing.min_recharge', 10), 'max:' . config('platform.pricing.max_recharge', 10000)],
         ]);
 
         $user = $request->user();
@@ -86,22 +77,13 @@ class RechargeController extends Controller
         $operator = Operator::findOrFail($request->operator_id);
         $country = Country::findOrFail($request->country_id);
 
-        // Get DingConnect cost (in production, from API)
-        $dingCost = round($request->amount * 0.98, 2);
-
-        // Calculate commission
-        $commissionService = app(CommissionService::class);
-        $pricing = $commissionService->calculatePricing(
-            $dingCost,
-            $request->amount,
-            $operator->id,
-            $country->id,
-            $user->commission_tier
-        );
+        // Pass-through pricing
+        $retailerCharged = (float) $request->amount;
+        $dingCost = $retailerCharged;
 
         // Check balance
         $availableBalance = $walletService->getAvailableBalance($wallet);
-        if ($availableBalance < $pricing['retailer_charged']) {
+        if ($availableBalance < $retailerCharged) {
             return back()->with('error', 'Insufficient wallet balance. Please top up your wallet.');
         }
 
@@ -109,18 +91,14 @@ class RechargeController extends Controller
         $orderReference = 'ORD-' . strtoupper(Str::random(12));
         $receiptNumber = 'TXN-' . now()->format('Ymd') . '-' . str_pad(Transaction::whereDate('created_at', today())->count() + 1, 5, '0', STR_PAD_LEFT);
 
-        // Create transaction with database transaction
-        $transaction = DB::transaction(function () use ($user, $operator, $country, $request, $pricing, $orderReference, $receiptNumber) {
+        // Create transaction
+        $transaction = DB::transaction(function () use ($user, $operator, $country, $request, $retailerCharged, $dingCost, $orderReference, $receiptNumber) {
             $transaction = Transaction::create([
                 'user_id' => $user->id,
                 'mobile_number' => preg_replace('/[^0-9]/', '', $request->mobile_number),
                 'operator_id' => $operator->id,
                 'country_id' => $country->id,
                 'amount' => $request->amount,
-                'ding_cost' => $pricing['ding_cost'],
-                'commission_rate' => $pricing['commission_rate'],
-                'commission_amount' => $pricing['commission_amount'],
-                'retailer_charged' => $pricing['retailer_charged'],
                 'ding_order_reference' => $orderReference,
                 'receipt_number' => $receiptNumber,
                 'ip_address' => $request->ip(),
@@ -130,7 +108,7 @@ class RechargeController extends Controller
             // Hold the amount in wallet
             $walletService = app(WalletService::class);
             $wallet = $walletService->getWallet($user);
-            $walletService->hold($wallet, $pricing['retailer_charged'], 'recharge', $transaction->id, "Hold for recharge - {$request->mobile_number}");
+            $walletService->hold($wallet, $retailerCharged, 'recharge', $transaction->id, "Hold for recharge - {$request->mobile_number}");
 
             return $transaction;
         });

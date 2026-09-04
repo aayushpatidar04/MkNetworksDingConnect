@@ -11,11 +11,8 @@
         "fakerphp/faker": "*",
         "guzzlehttp/guzzle": "*",
         "inertiajs/inertia-laravel": "^2.0",
-        
         "laravel/framework": "*",
         "laravel/pint": "*",
-        
-        
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "*",
         "maatwebsite/excel": "*",
@@ -24,7 +21,7 @@
         "phpunit/phpunit": "*",
         "propaganistas/laravel-phone": "*",
         "pusher/pusher-php-server": "*",
-        "razorpay/razorpay": "*",
+        "razorpay/razorpay": "^2.9",
         "spatie/laravel-activitylog": "*",
         "spatie/laravel-permission": "*",
         "tightenco/ziggy": "^2.0"

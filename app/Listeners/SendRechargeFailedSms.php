@@ -10,17 +10,17 @@ use Illuminate\Support\Facades\Log;
 
 class SendRechargeFailedSms implements ShouldQueue
 {
- use InteractsWithQueue;
+    use InteractsWithQueue;
 
- public function handle($event): void
- {
- $transaction = $event->transaction;
- $smsService = app(SmsService::class);
+    public function handle($event): void
+    {
+        $transaction = $event->transaction;
+        $smsService = app(SmsService::class);
 
- $smsService->sendRechargeFailed(
- $transaction->user->phone,
- $transaction->mobile_number,
- $transaction->amount
- );
- }
+        $smsService->sendRechargeFailed(
+            $transaction->user->phone,
+            $transaction->mobile_number,
+            $transaction->amount
+        );
+    }
 }

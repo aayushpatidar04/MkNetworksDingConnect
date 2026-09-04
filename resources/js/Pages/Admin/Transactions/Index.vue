@@ -45,9 +45,9 @@ const props = defineProps({
                 </div>
             </div>
             <div class="bg-dark-800 rounded-2xl p-4 border border-dark-600">
-                <div class="text-sm text-dark-300">Revenue</div>
+                <div class="text-sm text-blue-100">Total Volume</div>
                 <div class="text-xl font-bold text-primary-light">
-                    Rs. {{ Number(stats.total_commission).toFixed(2) }}
+                    Rs. {{ Number(stats.total_volume).toFixed(2) }}
                 </div>
             </div>
         </div>
@@ -151,11 +151,6 @@ const props = defineProps({
                             <th
                                 class="px-4 py-3 text-left text-xs font-medium text-dark-200 uppercase"
                             >
-                                Commission
-                            </th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-dark-200 uppercase"
-                            >
                                 Status
                             </th>
                             <th
@@ -192,10 +187,6 @@ const props = defineProps({
                                 class="px-4 py-3 text-sm font-medium text-white"
                             >
                                 Rs. {{ Number(txn.amount).toFixed(2) }}
-                            </td>
-                            <td class="px-4 py-3 text-sm text-accent-light">
-                                +Rs.
-                                {{ Number(txn.commission_amount).toFixed(2) }}
                             </td>
                             <td class="px-4 py-3">
                                 <span

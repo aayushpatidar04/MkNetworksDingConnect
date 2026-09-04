@@ -3,6 +3,8 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { Head, Link, usePage } from "@inertiajs/vue3";
 import Echo from "laravel-echo";
 import MkLogo from "@/Components/MkLogo.vue";
+import Toast from "@/Components/Toast.vue";
+import { useToast, toasts } from "@/composables/useToast.js";
 
 const showMobileMenu = ref(false);
 const notifications = ref([]);
@@ -46,7 +48,7 @@ onUnmounted(() => {
                     class="h-16 flex items-center justify-center border-b border-dark-600 px-3"
                 >
                     <Link href="/admin" class="flex items-center">
-                        <MkLogo size="xl" />
+                        <MkLogo size="md" />
                         <span
                             v-if="showMobileMenu"
                             class="ml-3 font-bold text-lg text-white whitespace-nowrap"
@@ -136,33 +138,6 @@ onUnmounted(() => {
                         </svg>
                         <span v-if="showMobileMenu" class="ml-3 font-medium"
                             >Transactions</span
-                        >
-                    </Link>
-
-                    <Link
-                        href="/admin/commissions"
-                        class="flex items-center px-3 py-3 rounded-xl transition-all duration-200"
-                        :class="
-                            $page.url.includes('/commissions')
-                                ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                : 'text-dark-300 hover:bg-dark-700 hover:text-white'
-                        "
-                    >
-                        <svg
-                            class="w-5 h-5 flex-shrink-0"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                        </svg>
-                        <span v-if="showMobileMenu" class="ml-3 font-medium"
-                            >Commissions</span
                         >
                     </Link>
 
@@ -321,6 +296,7 @@ onUnmounted(() => {
                 <!-- Page Content -->
                 <main class="flex-1 overflow-y-auto bg-dark-900 p-6">
                     <slot />
+                    <Toast />
                 </main>
             </div>
         </div>

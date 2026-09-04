@@ -25,7 +25,7 @@ class PaymentWebhookController extends Controller
 
         if ($topup) {
             // Notify user via Pusher
-            broadcast(new \App\Events\WalletCredited($topup->user, $topup->amount, $topup->user->wallet->balance));
+            broadcast(new \App\Events\WalletCredited($topup->user, (float) $topup->amount, $topup->user->wallet->balance));
 
             return response()->json(['status' => 'success']);
         }

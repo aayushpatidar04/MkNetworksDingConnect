@@ -9,6 +9,7 @@ use App\Models\WalletTopup;
 use App\Services\PaymentService;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class WalletController extends Controller
 {
@@ -29,7 +30,7 @@ class WalletController extends Controller
     public function initiateTopUp(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:' . config('platform.commission.min_amount', 10) . '|max:' . config('platform.commission.max_amount', 10000),
+            'amount' => 'required|numeric|min:' . config('platform.pricing.min_recharge', 10) . '|max:' . config('platform.pricing.max_recharge', 10000),
             'payment_method' => 'required|in:upi,card,net_banking',
         ]);
 
@@ -100,7 +101,7 @@ class WalletController extends Controller
         $walletService->credit($wallet, $topup->amount, 'topup', $topup->id, 'Wallet top-up via Razorpay');
 
         // Notify via Pusher
-        broadcast(new \App\Events\WalletCredited($topup->user, $topup->amount, $wallet->balance));
+        broadcast(new \App\Events\WalletCredited($topup->user, $topup->amount, (float) $wallet->balance));
 
         return redirect()->route('retailer.wallet.index')->with('success', 'Wallet credited successfully!');
     }

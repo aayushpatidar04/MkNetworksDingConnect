@@ -14,11 +14,10 @@ return [
         'retry_delay' => 10,
     ],
 
-    'commission' => [
-        'default_rate' => env('PLATFORM_COMMISSION_DEFAULT', 2.5),
-        'min_amount' => env('PLATFORM_MIN_RECHARGE', 10),
-        'max_amount' => env('PLATFORM_MAX_RECHARGE', 10000),
-        'low_balance_threshold' => env('PLATFORM_LOW_BALANCE_THRESHOLD', 500),
+    'pricing' => [
+        'min_recharge' => env('PLATFORM_MIN_RECHARGE', 10),
+        'max_recharge' => env('PLATFORM_MAX_RECHARGE', 10000),
+        'markup' => env('PLATFORM_MARKUP', 0),
     ],
 
     'wallet' => [

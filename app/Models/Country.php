@@ -9,14 +9,14 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Country extends Model
 {
- protected $fillable = ['name', 'iso_code', 'iso_code_3', 'calling_code', 'currency', 'flag_emoji', 'is_active'];
+    protected $fillable = ['name', 'iso_code', 'iso_code_3', 'calling_code', 'currency', 'flag_emoji', 'is_active'];
 
- protected $casts = [
- 'is_active' => 'boolean',
- ];
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 
- public function operators(): HasMany
- {
- return $this->hasMany(Operator::class);
- }
+    public function operators(): HasMany
+    {
+        return $this->hasMany(Operator::class);
+    }
 }

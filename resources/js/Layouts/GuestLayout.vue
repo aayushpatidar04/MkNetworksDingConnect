@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from "vue";
 import MkLogo from "@/Components/MkLogo.vue";
+import Toast from "@/Components/Toast.vue";
+import { useToast, toasts } from "@/composables/useToast.js";
 </script>
 
 <template>
@@ -18,6 +20,7 @@ import MkLogo from "@/Components/MkLogo.vue";
         </div>
 
         <div class="max-w-md w-full relative z-10">
+            <Toast />
             <!-- Logo -->
             <div class="flex justify-center mb-8">
                 <Link href="/">

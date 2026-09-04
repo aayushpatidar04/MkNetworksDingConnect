@@ -44,10 +44,6 @@ class RetailerController extends Controller
                 $query->where('kyc_status', 'pending');
         }
 
-        // Filter by tier
-        if ($tier = $request->input('tier')) {
-            $query->where('commission_tier', $tier);
-        }
 
         $retailers = $query->orderByDesc('created_at')->paginate(25);
 
@@ -73,7 +69,6 @@ class RetailerController extends Controller
             'city' => 'nullable|string|max:100',
             'state' => 'nullable|string|max:100',
             'pincode' => 'nullable|string|max:10',
-            'commission_tier' => 'in:bronze,silver,gold',
         ]);
 
         $user = User::create([
@@ -100,7 +95,6 @@ class RetailerController extends Controller
             'city' => 'nullable|string|max:100',
             'state' => 'nullable|string|max:100',
             'pincode' => 'nullable|string|max:10',
-            'commission_tier' => 'in:bronze,silver,gold',
             'is_active' => 'boolean',
         ]);
 

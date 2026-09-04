@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Admin\{
-    CommissionController,
     DashboardController,
     OperatorController,
     RetailerController,
@@ -31,7 +30,7 @@ use Inertia\Inertia;
 // ==========================================================================
 Route::get('/', [LandingController::class, 'index'])->name('home');
 
-Route::get('/contact', fn() => Inertia::render('Landing/Index'))->name('contact');
+Route::get('/contact', fn() => Inertia::render('Landing/Contact/Index'))->name('contact');
 
 // ==========================================================================
 // AUTHENTICATION
@@ -74,9 +73,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/transactions/{id}', [TransactionController::class, 'show'])->name('transactions.show');
     Route::post('/transactions/{id}/refund', [TransactionController::class, 'refund'])->name('transactions.refund');
     Route::get('/transactions/export', [TransactionController::class, 'export'])->name('transactions.export');
-
-    // Commissions
-    Route::resource('commissions', CommissionController::class);
 
     // Operators
     Route::resource('operators', OperatorController::class);

@@ -11,34 +11,36 @@ use Illuminate\Support\Facades\Log;
 
 class DingConnectController extends Controller
 {
- public function __construct(protected DingConnectService $dingService) {}
+    public function __construct(protected DingConnectService $dingService)
+    {
+    }
 
- public function callback(Request $request)
- {
- Log::info('DingConnect callback received', $request->all());
+    public function callback(Request $request)
+    {
+        Log::info('DingConnect callback received', $request->all());
 
- try {
- $transaction = $this->dingService->processCallback($request->all());
+        try {
+            $transaction = $this->dingService->processCallback($request->all());
 
- return response()->json([
- 'status' => 'success',
- 'message' => 'Callback processed successfully',
- 'transaction_id' => $transaction->id,
- ], 200);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Callback processed successfully',
+                'transaction_id' => $transaction->id,
+            ], 200);
 
- } catch (\InvalidArgumentException $e) {
- Log::error('Invalid DingConnect callback: ' . $e->getMessage());
- return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
- } catch (\Exception $e) {
- Log::error('DingConnect callback processing error: ' . $e->getMessage());
- return response()->json(['status' => 'error', 'message' => 'Processing failed'], 500);
- }
- }
+        } catch (\InvalidArgumentException $e) {
+            Log::error('Invalid DingConnect callback: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
+        } catch (\Exception $e) {
+            Log::error('DingConnect callback processing error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Processing failed'], 500);
+        }
+    }
 
- public function checkStatus(Request $request, Transaction $transaction)
- {
- $result = $this->dingService->checkStatus($transaction->ding_transaction_id);
+    public function checkStatus(Request $request, Transaction $transaction)
+    {
+        $result = $this->dingService->checkStatus($transaction->ding_transaction_id);
 
- return response()->json($result);
- }
+        return response()->json($result);
+    }
 }

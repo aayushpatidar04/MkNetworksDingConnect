@@ -10,18 +10,18 @@ use Illuminate\Support\Facades\Log;
 
 class SendRechargeSuccessSms implements ShouldQueue
 {
- use InteractsWithQueue;
+    use InteractsWithQueue;
 
- public function handle(RechargeSuccess $event): void
- {
- $transaction = $event->transaction;
- $smsService = app(SmsService::class);
+    public function handle(RechargeSuccess $event): void
+    {
+        $transaction = $event->transaction;
+        $smsService = app(SmsService::class);
 
- $smsService->sendRechargeSuccess(
- $transaction->user->phone,
- $transaction->mobile_number,
- $transaction->amount,
- $transaction->operator->name
- );
- }
+        $smsService->sendRechargeSuccess(
+            $transaction->user->phone,
+            $transaction->mobile_number,
+            (float) $transaction->amount,
+            $transaction->operator->name
+        );
+    }
 }

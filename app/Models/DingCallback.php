@@ -7,18 +7,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DingCallback extends Model
 {
- protected $fillable = ['transaction_id', 'ding_transaction_id', 'payload', 'status', 'error_message', 'received_at', 'processed_at'];
+    protected $fillable = ['transaction_id', 'ding_transaction_id', 'payload', 'status', 'error_message', 'received_at', 'processed_at'];
 
- protected $casts = [
- 'payload' => 'array',
- 'received_at' => 'datetime',
- 'processed_at' => 'datetime',
- ];
+    protected $casts = [
+        'payload' => 'array',
+        'received_at' => 'datetime',
+        'processed_at' => 'datetime',
+    ];
 
- public $timestamps = false;
+    public $timestamps = false;
 
- public function transaction(): BelongsTo
- {
- return $this->belongsTo(Transaction::class);
- }
+    public function transaction(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class);
+    }
 }

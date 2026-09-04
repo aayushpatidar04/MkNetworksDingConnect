@@ -13,59 +13,70 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
- use HasApiTokens, Notifiable, HasRoles;
+    use HasApiTokens, Notifiable, HasRoles;
 
- protected $fillable = [
- 'name', 'email', 'password', 'phone',
- 'shop_name', 'address', 'city', 'state', 'pincode',
- 'gst_number', 'pan_number', 'aadhar_number',
- 'kyc_id_proof_path', 'kyc_address_proof_path',
- 'kyc_status', 'kyc_rejection_reason', 'kyc_verified_at',
- 'is_active', 'commission_tier',
- 'ding_customer_id', 'ding_secret',
- 'last_login_at',
- ];
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'phone',
+        'shop_name',
+        'address',
+        'city',
+        'state',
+        'pincode',
+        'gst_number',
+        'pan_number',
+        'aadhar_number',
+        'kyc_id_proof_path',
+        'kyc_address_proof_path',
+        'kyc_status',
+        'kyc_rejection_reason',
+        'kyc_verified_at',
+        'is_active',
+        'ding_customer_id',
+        'ding_secret',
+        'last_login_at',
+    ];
 
- protected $hidden = [
- 'password', 'ding_secret', 'remember_token',
- ];
+    protected $hidden = [
+        'password',
+        'ding_secret',
+        'remember_token',
+    ];
 
- protected $casts = [
- 'email_verified_at' => 'datetime',
- 'last_login_at' => 'datetime',
- 'kyc_verified_at' => 'datetime',
- 'is_active' => 'boolean',
- 'password' => 'hashed',
- ];
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'last_login_at' => 'datetime',
+        'kyc_verified_at' => 'datetime',
+        'is_active' => 'boolean',
+        'password' => 'hashed',
+    ];
 
- // Relationships
- public function wallet(): HasOne
- {
- return $this->hasOne(Wallet::class);
- }
+    // Relationships
+    public function wallet(): HasOne
+    {
+        return $this->hasOne(Wallet::class);
+    }
 
- public function transactions(): HasMany
- {
- return $this->hasMany(Transaction::class);
- }
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
 
- public function walletTopups(): HasMany
- {
- return $this->hasMany(WalletTopup::class);
- }
+    public function walletTopups(): HasMany
+    {
+        return $this->hasMany(WalletTopup::class);
+    }
 
- public function earnings(): HasMany
- {
- return $this->hasMany(AdminEarning::class, 'retailer_id');
- }
 
- public function notifications(): HasMany
- {
- return $this->hasMany(Notification::class);
- }
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
 
- public function activityLogs(): HasMany
- {
- return $this->hasMany(ActivityLog::class);
- }
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
 }

@@ -3,6 +3,8 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { Head, Link, usePage } from "@inertiajs/vue3";
 import Echo from "laravel-echo";
 import MkLogo from "@/Components/MkLogo.vue";
+import Toast from "@/Components/Toast.vue";
+import { useToast, toasts } from "@/composables/useToast.js";
 
 const showMobileMenu = ref(false);
 const notifications = ref([]);
@@ -102,7 +104,7 @@ function logout() {
                             href="/retailer"
                             class="flex items-center ml-2 sm:ml-0"
                         >
-                            <MkLogo size="xl" />
+                            <MkLogo size="sm" />
                             <div class="ml-3 hidden sm:block">
                                 <div class="text-sm font-bold text-white">
                                     MK Network
@@ -290,6 +292,7 @@ function logout() {
         <!-- Main Content -->
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <slot />
+            <Toast />
         </main>
 
         <!-- Footer -->

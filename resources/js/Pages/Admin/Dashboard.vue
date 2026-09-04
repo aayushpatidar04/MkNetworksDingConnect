@@ -41,11 +41,11 @@ const props = defineProps({
                 </div>
             </div>
             <div class="stat-gradient-3 rounded-2xl p-5 card-hover">
-                <div class="text-sm text-blue-100">Today's Revenue</div>
+                <div class="text-sm text-blue-100">Today's Volume</div>
                 <div class="text-3xl font-bold text-white mt-1">
-                    Rs. {{ Number(stats.today_commission).toFixed(2) }}
+                    Rs. {{ Number(stats.today_volume).toFixed(2) }}
                 </div>
-                <div class="text-xs text-blue-200 mt-1">Commission earned</div>
+                <div class="text-xs text-blue-200 mt-1">Recharge volume</div>
             </div>
             <div class="stat-gradient-4 rounded-2xl p-5 card-hover">
                 <div class="text-sm text-green-100">Success Rate</div>

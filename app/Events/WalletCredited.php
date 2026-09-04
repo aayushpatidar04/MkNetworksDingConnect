@@ -12,35 +12,35 @@ use Illuminate\Queue\SerializesModels;
 
 class WalletCredited implements ShouldBroadcast
 {
- use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets, SerializesModels;
 
- public User $user;
- public float $amount;
- public float $newBalance;
+    public User $user;
+    public float $amount;
+    public float $newBalance;
 
- public function __construct(User $user, float $amount, float $newBalance)
- {
- $this->user = $user;
- $this->amount = $amount;
- $this->newBalance = $newBalance;
- }
+    public function __construct(User $user, float $amount, float $newBalance)
+    {
+        $this->user = $user;
+        $this->amount = $amount;
+        $this->newBalance = $newBalance;
+    }
 
- public function broadcastOn(): PrivateChannel
- {
- return new PrivateChannel('retailer.' . $this->user->id);
- }
+    public function broadcastOn(): PrivateChannel
+    {
+        return new PrivateChannel('retailer.' . $this->user->id);
+    }
 
- public function broadcastAs(): string
- {
- return 'WalletCredited';
- }
+    public function broadcastAs(): string
+    {
+        return 'WalletCredited';
+    }
 
- public function broadcastWith(): array
- {
- return [
- 'amount' => $this->amount,
- 'new_balance' => $this->newBalance,
- 'message' => "Your wallet has been credited with Rs. {$this->amount}. New balance: Rs. {$this->newBalance}",
- ];
- }
+    public function broadcastWith(): array
+    {
+        return [
+            'amount' => $this->amount,
+            'new_balance' => $this->newBalance,
+            'message' => "Your wallet has been credited with Rs. {$this->amount}. New balance: Rs. {$this->newBalance}",
+        ];
+    }
 }

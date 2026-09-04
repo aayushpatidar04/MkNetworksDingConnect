@@ -285,8 +285,8 @@ defineOptions({ layout: AppLayout });
                             Start Recharging
                         </h3>
                         <p class="text-dark-300">
-                            Process instant recharges for any operator and earn
-                            on every transaction.
+                            Process instant recharges for any operator at
+                            transparent pricing.
                         </p>
                     </div>
                 </div>
@@ -311,10 +311,16 @@ defineOptions({ layout: AppLayout });
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <Link
-                        href="/login"
+                        href="/contact"
                         class="btn-primary px-8 py-4 bg-primary text-white rounded-xl font-semibold text-lg text-center"
                     >
-                        Login to Dashboard
+                        Contact Us
+                    </Link>
+                    <Link
+                        href="/login"
+                        class="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold text-lg hover:bg-white/10 transition text-center"
+                    >
+                        Retailer Login
                     </Link>
                 </div>
             </div>

@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
- protected $fillable = ['key', 'value', 'type', 'group', 'description'];
+    protected $fillable = ['key', 'value', 'type', 'group', 'description'];
 
- protected $casts = [
- 'value' => 'array', // JSON stored as array
- ];
+    protected $casts = [
+        'value' => 'array', // JSON stored as array
+    ];
 }

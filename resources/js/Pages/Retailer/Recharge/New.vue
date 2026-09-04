@@ -1,6 +1,7 @@
 <script setup>
 import { Head, useForm, router } from "@inertiajs/vue3";
 import RetailerLayout from "@/Layouts/RetailerLayout.vue";
+import { useToast } from "@/Composables/useToast.js";
 import { ref, onMounted } from "vue";
 
 defineOptions({ layout: RetailerLayout });
@@ -51,7 +52,9 @@ function submit() {
         estimatedPrice.value &&
         props.availableBalance < estimatedPrice.value.retailer_charged
     ) {
-        alert("Insufficient wallet balance!");
+        useToast().error(
+            "Insufficient wallet balance! Please top up your wallet.",
+        );
         return;
     }
     form.post("/retailer/recharge", {
@@ -161,29 +164,19 @@ onMounted(() => {
                 class="bg-primary/10 rounded-xl p-4 space-y-1 border border-primary/20"
             >
                 <div class="flex justify-between text-sm">
-                    <span class="text-dark-300">DingConnect Cost:</span
-                    ><span class="text-dark-200"
+                    <span class="text-dark-300">Recharge Amount:</span>
+                    <span class="text-dark-200"
                         >Rs.
-                        {{ Number(estimatedPrice.ding_cost).toFixed(2) }}</span
-                    >
-                </div>
-                <div class="flex justify-between text-sm">
-                    <span class="text-dark-300"
-                        >Commission ({{
-                            (estimatedPrice.commission_rate * 100).toFixed(2)
-                        }}%):</span
-                    ><span class="text-accent-light"
-                        >+Rs.
                         {{
-                            Number(estimatedPrice.commission_amount).toFixed(2)
+                            Number(estimatedPrice.retailer_charged).toFixed(2)
                         }}</span
                     >
                 </div>
                 <div
                     class="flex justify-between text-base font-bold border-t border-primary/20 pt-2"
                 >
-                    <span class="text-white">You Pay:</span
-                    ><span class="text-primary-light"
+                    <span class="text-white">Amount:</span>
+                    <span class="text-primary-light"
                         >Rs.
                         {{
                             Number(estimatedPrice.retailer_charged).toFixed(2)

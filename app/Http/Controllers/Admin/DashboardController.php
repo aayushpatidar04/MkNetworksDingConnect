@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\User;
-use App\Models\AdminEarning;
 use App\Services\DingConnectService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,11 +24,11 @@ class DashboardController extends Controller
             'today_success' => Transaction::whereDate('created_at', today())->where('status', 'success')->count(),
             'today_failed' => Transaction::whereDate('created_at', today())->where('status', 'failed')->count(),
             'today_amount' => Transaction::whereDate('created_at', today())->where('status', 'success')->sum('amount'),
-            'today_commission' => Transaction::whereDate('created_at', today())->where('status', 'success')->sum('commission_amount'),
+            'today_volume' => Transaction::whereDate('created_at', today())->where('status', 'success')->sum('amount'),
 
             'total_transactions' => Transaction::count(),
             'total_success' => Transaction::where('status', 'success')->count(),
-            'total_revenue' => Transaction::where('status', 'success')->sum('commission_amount'),
+            'total_volume' => Transaction::where('status', 'success')->sum('amount'),
 
             'success_rate' => Transaction::where('status', 'success')->count() > 0
                 ? round((Transaction::where('status', 'success')->count() / Transaction::whereIn('status', ['success', 'failed', 'cancelled'])->count()) * 100, 1)
@@ -59,7 +58,7 @@ class DashboardController extends Controller
             $chartData[] = [
                 'date' => $date,
                 'transactions' => Transaction::whereDate('created_at', $date)->count(),
-                'revenue' => Transaction::whereDate('created_at', $date)->where('status', 'success')->sum('commission_amount'),
+                'volume' => Transaction::whereDate('created_at', $date)->where('status', 'success')->sum('amount'),
             ];
         }
 
