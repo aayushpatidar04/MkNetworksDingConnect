@@ -9,6 +9,7 @@ use App\Services\DingConnectService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
 
 
 class OperatorController extends Controller
@@ -26,7 +27,7 @@ class OperatorController extends Controller
         }
 
         $operators = $query->orderBy('display_order')->paginate(50);
-        $countries = Country::where('is_active', true)->get(['id', 'name', 'iso_code']);
+        $countries = Country::where('is_active', true)->get(['id', 'name', 'iso_code', 'flag_emoji']);
 
         return Inertia::render('Admin/Operators/Index', compact('operators', 'countries'));
     }
@@ -73,6 +74,10 @@ class OperatorController extends Controller
 
     public function syncFromDing(DingConnectService $dingService)
     {
+        // Step 1: Map local countries to Ding country IDs
+        $this->mapCountryIds($dingService);
+
+        // Step 2: Fetch operators from DingConnect
         $result = $dingService->getCountries();
 
         if (!$result['success']) {
@@ -80,14 +85,28 @@ class OperatorController extends Controller
         }
 
         $synced = 0;
+        $skipped = 0;
+
         foreach ($result['data'] as $countryData) {
+            $dingCountryId = $countryData['CountryID'] ?? null;
+            $localCountry = null;
+
+            if ($dingCountryId) {
+                $localCountry = Country::where('ding_country_id', (string) $dingCountryId)->first();
+            }
+
+            if (!$localCountry) {
+                $skipped++;
+                continue;
+            }
+
             foreach ($countryData['Operators'] ?? [] as $operatorData) {
                 Operator::updateOrCreate(
-                    ['ding_operator_id' => $operatorData['OperatorID']],
+                    ['ding_operator_id' => (string) $operatorData['OperatorID']],
                     [
                         'name' => $operatorData['Name'],
-                        'slug' => str($operatorData['Name'])->slug(),
-                        'country_id' => $countryData['CountryID'], // You'd need to map this
+                        'slug' => strtolower(Str::slug($operatorData['Name'])),
+                        'country_id' => $localCountry->id,
                         'is_active' => true,
                     ]
                 );
@@ -95,6 +114,32 @@ class OperatorController extends Controller
             }
         }
 
-        return back()->with('success', "Synced {$synced} operators from DingConnect!");
+        $msg = "Synced {$synced} operators";
+        if ($skipped > 0) {
+            $msg .= " ({$skipped} countries skipped — no local match)";
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    private function mapCountryIds(DingConnectService $dingService): void
+    {
+        $result = $dingService->getCountries();
+
+        if (!$result['success']) {
+            return;
+        }
+
+        foreach ($result['data'] as $countryData) {
+            $dingId = $countryData['CountryID'] ?? null;
+            $isoCode = $countryData['ISOCode'] ?? $countryData['CountryCode'] ?? null;
+
+            if (!$dingId || !$isoCode) {
+                continue;
+            }
+
+            Country::where('iso_code', strtoupper($isoCode))
+                ->update(['ding_country_id' => (string) $dingId]);
+        }
     }
 }

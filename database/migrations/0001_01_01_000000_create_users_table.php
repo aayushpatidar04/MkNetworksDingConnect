@@ -12,6 +12,7 @@ return new class extends Migration {
             $table->string('name');
             $table->string('iso_code', 2)->unique();
             $table->string('iso_code_3', 3);
+            $table->string('ding_country_id')->nullable();
             $table->string('calling_code');
             $table->string('currency', 3)->default('INR');
             $table->string('flag_emoji')->nullable();

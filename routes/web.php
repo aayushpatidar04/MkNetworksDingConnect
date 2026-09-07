@@ -60,22 +60,23 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Retailer Management
-    Route::resource('retailers', RetailerController::class)->except(['create', 'store', 'edit', 'show']);
-    Route::get('/retailers/{id}', [RetailerController::class, 'show'])->name('retailers.show');
-    Route::post('/retailers/{id}/approve', [RetailerController::class, 'approve'])->name('retailers.approve');
-    Route::post('/retailers/{id}/block', [RetailerController::class, 'block'])->name('retailers.block');
-    Route::post('/retailers/{id}/credit', [RetailerController::class, 'creditWallet'])->name('retailers.credit');
-    Route::post('/retailers/{id}/kyc', [RetailerController::class, 'processKyc'])->name('retailers.kyc');
+    Route::resource('retailers', RetailerController::class)->except(['show']);
+    Route::get('/retailers/{retailer}', [RetailerController::class, 'show'])->name('retailers.show');
+    Route::post('/retailers/{retailer}/approve', [RetailerController::class, 'approve'])->name('retailers.approve');
+    Route::post('/retailers/{retailer}/block', [RetailerController::class, 'block'])->name('retailers.block');
+    Route::post('/retailers/{retailer}/credit', [RetailerController::class, 'creditWallet'])->name('retailers.credit');
+    Route::post('/retailers/{retailer}/kyc', [RetailerController::class, 'processKyc'])->name('retailers.kyc');
     Route::get('/retailers/export', [RetailerController::class, 'export'])->name('retailers.export');
 
     // Transactions
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
-    Route::get('/transactions/{id}', [TransactionController::class, 'show'])->name('transactions.show');
-    Route::post('/transactions/{id}/refund', [TransactionController::class, 'refund'])->name('transactions.refund');
+    Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
+    Route::post('/transactions/{transaction}/refund', [TransactionController::class, 'refund'])->name('transactions.refund');
     Route::get('/transactions/export', [TransactionController::class, 'export'])->name('transactions.export');
 
     // Operators
     Route::resource('operators', OperatorController::class);
+ Route::post('operators/sync', [OperatorController::class, 'syncFromDing'])->name('operators.sync');
 
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
@@ -103,8 +104,8 @@ Route::prefix('retailer')->name('retailer.')->middleware(['auth', 'retailer'])->
 
     // Transactions
     Route::get('/transactions', [RetailerTransactionController::class, 'index'])->name('transactions.index');
-    Route::get('/transactions/{id}', [RetailerTransactionController::class, 'show'])->name('transactions.show');
-    Route::get('/transactions/{id}/receipt', [RetailerTransactionController::class, 'receipt'])->name('transactions.receipt');
+    Route::get('/transactions/{transaction}', [RetailerTransactionController::class, 'show'])->name('transactions.show');
+    Route::get('/transactions/{transaction}/receipt', [RetailerTransactionController::class, 'receipt'])->name('transactions.receipt');
 
     // Profile
     Route::get('/profile', [RetailerProfileController::class, 'index'])->name('profile.index');

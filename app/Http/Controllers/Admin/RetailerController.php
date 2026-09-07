@@ -16,7 +16,6 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\RetailersExport;
 use Inertia\Inertia;
 
-
 class RetailerController extends Controller
 {
     public function index(Request $request)
@@ -25,7 +24,7 @@ class RetailerController extends Controller
             ->with(['wallet', 'transactions']);
 
         // Search
-        if ($search = $request->input('search')) {
+        if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
@@ -35,7 +34,7 @@ class RetailerController extends Controller
         }
 
         // Filter by status
-        if ($status = $request->input('status')) {
+        if ($status = $request->get('status')) {
             if ($status === 'active')
                 $query->where('is_active', true);
             if ($status === 'inactive')
@@ -57,6 +56,11 @@ class RetailerController extends Controller
         return Inertia::render('Admin/Retailers/Show', compact('retailer'));
     }
 
+    public function create()
+    {
+        return Inertia::render("Admin/Retailers/Create");
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -67,8 +71,8 @@ class RetailerController extends Controller
             'shop_name' => 'nullable|string|max:255',
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:100',
-            'state' => 'nullable|string|max:100',
-            'pincode' => 'nullable|string|max:10',
+            'county' => 'nullable|string|max:100',
+            'postcode' => 'nullable|string|max:10',
         ]);
 
         $user = User::create([
@@ -84,6 +88,11 @@ class RetailerController extends Controller
         return redirect()->route('admin.retailers.index')->with('success', 'Retailer created successfully!');
     }
 
+    public function edit(User $retailer)
+    {
+        return Inertia::render("Admin/Retailers/Edit", compact("retailer"));
+    }
+
     public function update(Request $request, User $retailer)
     {
         $validated = $request->validate([
@@ -93,8 +102,11 @@ class RetailerController extends Controller
             'shop_name' => 'nullable|string|max:255',
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:100',
-            'state' => 'nullable|string|max:100',
-            'pincode' => 'nullable|string|max:10',
+            'county' => 'nullable|string|max:100',
+            'postcode' => 'nullable|string|max:10',
+            'vat_number' => 'nullable|string|max:20',
+            'company_reg_number' => 'nullable|string|max:20',
+            'utr_number' => 'nullable|string|max:20',
             'is_active' => 'boolean',
         ]);
 

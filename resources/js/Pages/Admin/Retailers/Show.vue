@@ -17,6 +17,12 @@ const creditForm = useForm({ amount: "", description: "" });
                 class="text-primary-light hover:text-primary transition"
                 >← Back to Retailers</Link
             >
+            <Link
+                :href="`/admin/retailers/${retailer.id}/edit`"
+                class="ml-4 px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition text-sm"
+                >Edit</Link
+            >
+
             <div>
                 <h1 class="text-3xl font-bold text-white">
                     {{ retailer.name }}
@@ -53,21 +59,27 @@ const creditForm = useForm({ amount: "", description: "" });
                             </p>
                         </div>
                         <div>
-                            <span class="text-dark-400">State:</span>
+                            <span class="text-dark-400">County:</span>
                             <p class="font-medium text-white">
-                                {{ retailer.state || "-" }}
+                                {{ retailer.county || "-" }}
                             </p>
                         </div>
                         <div>
-                            <span class="text-dark-400">GST:</span>
+                            <span class="text-dark-400">VAT:</span>
                             <p class="font-medium text-white">
-                                {{ retailer.gst_number || "-" }}
+                                {{ retailer.vat_number || "-" }}
                             </p>
                         </div>
                         <div>
-                            <span class="text-dark-400">PAN:</span>
+                            <span class="text-dark-400">UTR:</span>
                             <p class="font-medium text-white">
-                                {{ retailer.pan_number || "-" }}
+                                {{ retailer.utr_number || "-" }}
+                            </p>
+                        </div>
+                        <div>
+                            <span class="text-dark-400">Company Registration Number:</span>
+                            <p class="font-medium text-white">
+                                {{ retailer.company_reg_number || "-" }}
                             </p>
                         </div>
                     </div>
