@@ -1,7 +1,6 @@
 <script setup>
 import { Head, router, useForm } from "@inertiajs/vue3";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
-import Modal from "@/Components/Modal.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import TextInput from "@/Components/TextInput.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
@@ -21,13 +20,44 @@ const deletingOperator = ref(null);
 const syncing = ref(false);
 const search = ref(props.operators.query?.search || "");
 const countryFilter = ref(props.operators.query?.country_id || "");
+const countrySearch = ref("");
+const showCountryDropdown = ref(false);
+
+const filteredCountries = computed(() => {
+    if (!countrySearch.value) return props.countries;
+    const q = countrySearch.value.toLowerCase();
+    return props.countries.filter(
+        (c) =>
+            c.name.toLowerCase().includes(q) ||
+            c.iso_code.toLowerCase().includes(q) ||
+            (c.flag_emoji && c.flag_emoji.includes(q)),
+    );
+});
+
+const selectedCountryName = computed(() => {
+    if (!countryFilter.value) return "";
+    const c = props.countries.find((c) => c.id == countryFilter.value);
+    return c ? `${c.flag_emoji || ""} ${c.name}` : "";
+});
+
+function selectCountry(id) {
+    countryFilter.value = id;
+    countrySearch.value = "";
+    showCountryDropdown.value = false;
+    applyFilters();
+}
+
+function closeCountryDropdown() {
+    showCountryDropdown.value = false;
+    countrySearch.value = "";
+}
 
 const form = useForm({
     name: "",
     ding_operator_id: "",
     country_id: "",
     logo_url: "",
-    display_order: "0",
+    display_order: 0,
     is_active: true,
 });
 
@@ -95,7 +125,9 @@ function syncFromDing() {
 }
 
 function goToPage(url) {
-    router.get(url, {}, { preserveState: true });
+    if (url) {
+        router.get(url, {}, { preserveState: true });
+    }
 }
 
 function applyFilters() {
@@ -105,13 +137,28 @@ function applyFilters() {
         { preserveState: true },
     );
 }
+
+function closeAddModal() {
+    showAddModal.value = false;
+    form.reset();
+}
+
+function closeEditModal() {
+    showEditModal.value = false;
+    editingOperator.value = null;
+}
+
+function closeDeleteModal() {
+    showDeleteModal.value = false;
+    deletingOperator.value = null;
+}
 </script>
 
 <template>
     <Head title="Operators - Admin" />
 
     <div class="space-y-6">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between flex-wrap gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-white mb-1">Operators</h1>
                 <p class="text-dark-300">
@@ -125,7 +172,7 @@ function applyFilters() {
                 <button
                     @click="syncFromDing"
                     :disabled="syncing"
-                    class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition flex items-center gap-2"
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition flex items-center gap-2 whitespace-nowrap"
                 >
                     <svg
                         v-if="syncing"
@@ -165,7 +212,7 @@ function applyFilters() {
                 </button>
                 <button
                     @click="openAddModal"
-                    class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition"
+                    class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition whitespace-nowrap"
                 >
                     + Add Operator
                 </button>
@@ -186,7 +233,7 @@ function applyFilters() {
         </div>
 
         <div
-            class="bg-dark-800 rounded-2xl border border-dark-600 overflow-hidden"
+            class="bg-dark-800 rounded-2xl border border-dark-600 overflow-visible"
         >
             <div class="p-4 border-b border-dark-600 flex flex-wrap gap-4">
                 <input
@@ -196,16 +243,78 @@ function applyFilters() {
                     placeholder="Search operators..."
                     class="border border-dark-600 rounded-lg px-4 py-2 bg-dark-700 text-white text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                 />
-                <select
-                    v-model="countryFilter"
-                    @change="applyFilters"
-                    class="border border-dark-600 rounded-lg px-4 py-2 bg-dark-700 text-white text-sm outline-none"
-                >
-                    <option value="">All Countries</option>
-                    <option v-for="c in countries" :key="c.id" :value="c.id">
-                        {{ c.flag_emoji }} {{ c.name }}
-                    </option>
-                </select>
+                <div class="relative">
+                    <button
+                        @click="showCountryDropdown = !showCountryDropdown"
+                        class="border border-dark-600 rounded-lg px-4 py-2 bg-dark-700 text-white text-sm outline-none min-w-[180px] text-left flex items-center justify-between"
+                    >
+                        <span>{{
+                            selectedCountryName || "All Countries"
+                        }}</span>
+                        <svg
+                            class="w-4 h-4 text-dark-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 9l-7 7-7-7"
+                            ></path>
+                        </svg>
+                    </button>
+                    <div
+                        v-if="showCountryDropdown"
+                        class="absolute z-50 mt-1 w-80 bg-dark-700 border border-dark-600 rounded-lg shadow-xl max-h-80 flex flex-col"
+                    >
+                        <div class="p-2 border-b border-dark-600">
+                            <input
+                                v-model="countrySearch"
+                                type="text"
+                                placeholder="Search countries..."
+                                class="w-full border border-dark-600 rounded px-3 py-2 bg-dark-800 text-white text-sm outline-none"
+                            />
+                        </div>
+                        <div class="overflow-y-auto flex-1">
+                            <div
+                                @click="selectCountry('', null)"
+                                class="px-3 py-2 text-sm cursor-pointer hover:bg-dark-600 transition"
+                                :class="
+                                    !countryFilter
+                                        ? 'text-primary font-medium'
+                                        : 'text-dark-200'
+                                "
+                            >
+                                All Countries
+                            </div>
+                            <div
+                                v-for="c in filteredCountries"
+                                :key="c.id"
+                                @click="selectCountry(c.id, c.name)"
+                                class="px-3 py-2 text-sm cursor-pointer hover:bg-dark-600 transition flex items-center gap-2"
+                                :class="
+                                    countryFilter == c.id
+                                        ? 'bg-dark-600 text-primary font-medium'
+                                        : 'text-dark-200'
+                                "
+                            >
+                                <span>{{ c.flag_emoji || "" }}</span>
+                                <span>{{ c.name }}</span>
+                                <span class="text-dark-400 text-xs ml-auto">{{
+                                    c.iso_code
+                                }}</span>
+                            </div>
+                            <div
+                                v-if="!filteredCountries.length"
+                                class="px-3 py-4 text-center text-dark-400 text-sm"
+                            >
+                                No countries found
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -301,7 +410,7 @@ function applyFilters() {
 
             <div
                 v-if="operators.last_page > 1"
-                class="p-4 border-t border-dark-600 flex items-center justify-between"
+                class="p-4 border-t border-dark-600 flex items-center justify-between flex-wrap gap-2"
             >
                 <p class="text-sm text-dark-400">
                     Showing {{ operators.from }} to {{ operators.to }} of
@@ -309,18 +418,18 @@ function applyFilters() {
                 </p>
                 <div class="flex gap-2">
                     <button
-                        v-for="page in operators.links"
-                        :key="page.label"
-                        @click="goToPage(page.url)"
-                        :disabled="!page.url"
+                        v-for="(link, key) in operators.links"
+                        :key="key"
+                        @click="goToPage(link.url)"
+                        :disabled="!link.url || link.active"
                         :class="[
                             'px-3 py-1 rounded text-sm transition',
-                            page.active
+                            link.active
                                 ? 'bg-primary text-white'
                                 : 'bg-dark-700 text-dark-300 hover:bg-dark-600',
-                            !page.url ? 'opacity-50 cursor-not-allowed' : '',
+                            !link.url ? 'opacity-50 cursor-not-allowed' : '',
                         ]"
-                        v-html="page.label"
+                        v-html="link.label"
                     />
                 </div>
             </div>
@@ -328,9 +437,38 @@ function applyFilters() {
     </div>
 
     <!-- Add Operator Modal -->
-    <Modal :show="showAddModal" @close="showAddModal = false">
-        <div class="p-6">
-            <h3 class="text-xl font-bold text-white mb-4">Add Operator</h3>
+    <div
+        v-if="showAddModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+    >
+        <div
+            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            @click="closeAddModal"
+        ></div>
+        <div
+            class="relative bg-dark-800 rounded-2xl border border-dark-600 p-6 w-full max-w-lg shadow-2xl"
+        >
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-white">Add Operator</h3>
+                <button
+                    @click="closeAddModal"
+                    class="text-dark-400 hover:text-white transition"
+                >
+                    <svg
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                        ></path>
+                    </svg>
+                </button>
+            </div>
             <form @submit.prevent="submitAdd" class="space-y-4">
                 <div>
                     <InputLabel value="Operator Name *" />
@@ -407,10 +545,10 @@ function applyFilters() {
                     <input
                         type="checkbox"
                         v-model="form.is_active"
-                        id="active"
+                        id="add-active"
                         class="rounded"
                     />
-                    <label for="active" class="text-sm text-dark-200"
+                    <label for="add-active" class="text-sm text-dark-200"
                         >Active</label
                     >
                 </div>
@@ -422,18 +560,47 @@ function applyFilters() {
                     >
                         {{ form.processing ? "Adding..." : "Add Operator" }}
                     </PrimaryButton>
-                    <SecondaryButton type="button" @click="showAddModal = false"
+                    <SecondaryButton type="button" @click="closeAddModal"
                         >Cancel</SecondaryButton
                     >
                 </div>
             </form>
         </div>
-    </Modal>
+    </div>
 
     <!-- Edit Operator Modal -->
-    <Modal :show="showEditModal" @close="showEditModal = false">
-        <div class="p-6">
-            <h3 class="text-xl font-bold text-white mb-4">Edit Operator</h3>
+    <div
+        v-if="showEditModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+    >
+        <div
+            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            @click="closeEditModal"
+        ></div>
+        <div
+            class="relative bg-dark-800 rounded-2xl border border-dark-600 p-6 w-full max-w-lg shadow-2xl"
+        >
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-white">Edit Operator</h3>
+                <button
+                    @click="closeEditModal"
+                    class="text-dark-400 hover:text-white transition"
+                >
+                    <svg
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                        ></path>
+                    </svg>
+                </button>
+            </div>
             <form @submit.prevent="submitEdit" class="space-y-4">
                 <div>
                     <InputLabel value="Operator Name *" />
@@ -523,19 +690,26 @@ function applyFilters() {
                     >
                         {{ form.processing ? "Saving..." : "Save Changes" }}
                     </PrimaryButton>
-                    <SecondaryButton
-                        type="button"
-                        @click="showEditModal = false"
+                    <SecondaryButton type="button" @click="closeEditModal"
                         >Cancel</SecondaryButton
                     >
                 </div>
             </form>
         </div>
-    </Modal>
+    </div>
 
     <!-- Delete Confirmation Modal -->
-    <Modal :show="showDeleteModal" @close="showDeleteModal = false">
-        <div class="p-6">
+    <div
+        v-if="showDeleteModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+    >
+        <div
+            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            @click="closeDeleteModal"
+        ></div>
+        <div
+            class="relative bg-dark-800 rounded-2xl border border-dark-600 p-6 w-full max-w-md shadow-2xl"
+        >
             <h3 class="text-xl font-bold text-white mb-2">Delete Operator</h3>
             <p class="text-dark-300 mb-6">
                 Are you sure you want to delete
@@ -550,10 +724,10 @@ function applyFilters() {
                 >
                     Delete
                 </DangerButton>
-                <SecondaryButton @click="showDeleteModal = false"
+                <SecondaryButton @click="closeDeleteModal"
                     >Cancel</SecondaryButton
                 >
             </div>
         </div>
-    </Modal>
+    </div>
 </template>

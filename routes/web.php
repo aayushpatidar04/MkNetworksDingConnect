@@ -76,7 +76,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     // Operators
     Route::resource('operators', OperatorController::class);
- Route::post('operators/sync', [OperatorController::class, 'syncFromDing'])->name('operators.sync');
+    Route::post('operators/sync', [OperatorController::class, 'syncFromDing'])->name('operators.sync');
 
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
@@ -143,3 +143,24 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// DingConnect API test route (remove after testing)
+Route::get('/test-ding', function (\App\Services\DingConnectService $ding) {
+    \Log::info('=== DING TEST START ===');
+    \Log::info('URL: ' . config('platform.dingconnect.base_url'));
+    \Log::info('Key: ' . substr(config('platform.dingconnect.api_key'), 0, 8) . '...');
+    \Log::info('CustomerID: ' . (config('platform.dingconnect.customer_id') ?: '(empty)'));
+
+    try {
+        $result = $ding->getCountries();
+        \Log::info('Result:', $result);
+        return response()->json([
+            'url' => config('platform.dingconnect.base_url'),
+            'has_customer_id' => !empty(config('platform.dingconnect.customer_id')),
+            'result' => $result,
+        ]);
+    } catch (Exception $e) {
+        \Log::error('Test error: ' . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+})->middleware(['auth', 'admin'])->name('test.ding');

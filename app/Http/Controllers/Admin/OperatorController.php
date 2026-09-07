@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 
 class OperatorController extends Controller
@@ -74,38 +75,38 @@ class OperatorController extends Controller
 
     public function syncFromDing(DingConnectService $dingService)
     {
-        // Step 1: Map local countries to Ding country IDs
-        $this->mapCountryIds($dingService);
-
-        // Step 2: Fetch operators from DingConnect
-        $result = $dingService->getCountries();
-
-        if (!$result['success']) {
-            return back()->with('error', 'Failed to sync operators: ' . $result['error']);
-        }
-
+        // Only sync UK (GB) and India (IN)
         $synced = 0;
-        $skipped = 0;
+        $failedCountries = [];
 
-        foreach ($result['data'] as $countryData) {
-            $dingCountryId = $countryData['CountryID'] ?? null;
-            $localCountry = null;
+        $countryCodes = Country::whereIn('iso_code', ['GB', 'IN'])->where('is_active', true)->pluck('iso_code')->filter()->values();
 
-            if ($dingCountryId) {
-                $localCountry = Country::where('ding_country_id', (string) $dingCountryId)->first();
-            }
 
-            if (!$localCountry) {
-                $skipped++;
+        foreach ($countryCodes as $isoCode) {
+            $operatorResult = $dingService->getProviders($isoCode);
+
+            if (!$operatorResult['success']) {
+                $failedCountries[] = $isoCode;
                 continue;
             }
 
-            foreach ($countryData['Operators'] ?? [] as $operatorData) {
+            foreach ($operatorResult['data'] as $operatorData) {
+                $operatorId = $operatorData['OperatorID'] ?? $operatorData['Id'] ?? null;
+
+                if (!$operatorId) {
+                    continue;
+                }
+
+                $localCountry = Country::where('iso_code', $isoCode)->first();
+                if (!$localCountry) {
+                    continue;
+                }
+
                 Operator::updateOrCreate(
-                    ['ding_operator_id' => (string) $operatorData['OperatorID']],
+                    ['ding_operator_id' => (string) $operatorId],
                     [
-                        'name' => $operatorData['Name'],
-                        'slug' => strtolower(Str::slug($operatorData['Name'])),
+                        'name' => $operatorData['Name'] ?? 'Unknown',
+                        'slug' => strtolower(Str::slug($operatorData['Name'] ?? 'unknown')),
                         'country_id' => $localCountry->id,
                         'is_active' => true,
                     ]
@@ -114,32 +115,25 @@ class OperatorController extends Controller
             }
         }
 
-        $msg = "Synced {$synced} operators";
-        if ($skipped > 0) {
-            $msg .= " ({$skipped} countries skipped — no local match)";
+        $msg = "Synced {$synced} operators from DingConnect";
+        if (count($failedCountries) > 0) {
+            $msg .= " (failed for: " . implode(', ', $failedCountries) . ")";
         }
 
         return back()->with('success', $msg);
     }
 
-    private function mapCountryIds(DingConnectService $dingService): void
+    /**
+     * Helper: Convert ISO country code to flag emoji
+     */
+    private function getFlagEmoji(string $isoCode): string
     {
-        $result = $dingService->getCountries();
-
-        if (!$result['success']) {
-            return;
+        $offset = ord('A');
+        $emoji = '';
+        $chars = str_split($isoCode);
+        foreach ($chars as $char) {
+            $emoji .= mb_chr(ord($char) - $offset + 0x1F1E6);
         }
-
-        foreach ($result['data'] as $countryData) {
-            $dingId = $countryData['CountryID'] ?? null;
-            $isoCode = $countryData['ISOCode'] ?? $countryData['CountryCode'] ?? null;
-
-            if (!$dingId || !$isoCode) {
-                continue;
-            }
-
-            Country::where('iso_code', strtoupper($isoCode))
-                ->update(['ding_country_id' => (string) $dingId]);
-        }
+        return $emoji;
     }
 }
