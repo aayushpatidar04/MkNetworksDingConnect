@@ -6,7 +6,6 @@ use App\Models\DingCallback;
 use App\Models\Transaction;
 use App\Models\Wallet;
 use App\Models\WalletLedger;
-use App\Models\AdminEarning;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -263,12 +262,6 @@ class DingConnectService
                 ]);
             }
 
-            // Record admin earnings
-            AdminEarning::create([
-                'transaction_id' => $transaction->id,
-                'retailer_id' => $transaction->user_id,
-                'amount' => $transaction->amount,
-            ]);
 
             // Fire events for notifications
             event(new RechargeSuccess($transaction));

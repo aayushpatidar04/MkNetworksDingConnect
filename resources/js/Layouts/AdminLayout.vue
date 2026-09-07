@@ -48,12 +48,8 @@ onUnmounted(() => {
                     class="h-16 flex items-center justify-center border-b border-dark-600 px-3"
                 >
                     <Link href="/admin" class="flex items-center">
-                        <MkLogo size="md" />
-                        <span
-                            v-if="showMobileMenu"
-                            class="ml-3 font-bold text-lg text-white whitespace-nowrap"
-                            >Admin</span
-                        >
+                        <MkLogo v-if="showMobileMenu" size="xl" />
+                        <img v-else :src="'/favicon.png'" class="h-12 w-auto">
                     </Link>
                 </div>
 
