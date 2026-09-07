@@ -8,41 +8,49 @@ use App\Models\Operator;
 use App\Services\DingConnectService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Inertia\Inertia;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
-
+use Inertia\Inertia;
 
 class OperatorController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Operator::with('country');
+        $query = Operator::with('country')->orderBy('display_order')->orderBy('name');
 
-        if ($search = $request->input('search')) {
-            $query->where('name', 'like', "%{$search}%");
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                ->orWhere('slug', 'like', '%' . $request->search . '%');
         }
 
-        if ($countryId = $request->input('country_id')) {
-            $query->where('country_id', $countryId);
+        if ($request->filled('country_id')) {
+            $query->where('country_id', $request->country_id);
         }
 
-        $operators = $query->orderBy('display_order')->paginate(50);
-        $countries = Country::where('is_active', true)->get(['id', 'name', 'iso_code', 'flag_emoji']);
+        if ($request->filled('is_active')) {
+            $query->where('is_active', $request->is_active);
+        }
 
-        return Inertia::render('Admin/Operators/Index', compact('operators', 'countries'));
+        $operators = $query->paginate(50)->withQueryString();
+        $countries = Country::orderBy('name')->get();
+
+        return Inertia::render('Admin/Operators/Index', [
+            'operators' => $operators,
+            'countries' => $countries,
+        ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:100|unique:operators',
             'ding_operator_id' => 'required|string|max:100',
             'country_id' => 'required|exists:countries,id',
             'logo_url' => 'nullable|url',
             'display_order' => 'integer|min:0',
         ]);
+
+        $validated['slug'] = strtolower(Str::slug($validated['name']));
+        $validated['is_active'] = $request->has('is_active');
 
         Operator::create($validated);
 
@@ -53,13 +61,14 @@ class OperatorController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => ['required', 'string', 'max:100', Rule::unique('operators')->ignore($operator->id)],
             'ding_operator_id' => 'required|string|max:100',
             'country_id' => 'required|exists:countries,id',
             'logo_url' => 'nullable|url',
             'display_order' => 'integer|min:0',
             'is_active' => 'boolean',
         ]);
+
+        $validated['slug'] = strtolower(Str::slug($validated['name']));
 
         $operator->update($validated);
 
@@ -75,12 +84,15 @@ class OperatorController extends Controller
 
     public function syncFromDing(DingConnectService $dingService)
     {
-        // Only sync UK (GB) and India (IN)
         $synced = 0;
         $failedCountries = [];
 
         $countryCodes = Country::whereIn('iso_code', ['GB', 'IN'])->where('is_active', true)->pluck('iso_code')->filter()->values();
 
+        $allowedProviders = [
+            'GB' => ['Orange United Kingdom', 'Vodafone United Kingdom', 'O2 United Kingdom', 'T-Mobile United Kingdom', 'Now Mobile United Kingdom', 'Virgin United Kingdom', 'BitDefender United Kingdom', 'Nandos United Kingdom', 'Lebara United Kingdom', 'giffgaff United Kingdom', 'Lyca Mobile United Kingdom', '3 United Kingdom'],
+            'IN' => ['Airtel India', 'Vi India', 'Jio India', 'BSNL India', 'MTNL India'],
+        ];
 
         foreach ($countryCodes as $isoCode) {
             $operatorResult = $dingService->getProviders($isoCode);
@@ -90,24 +102,51 @@ class OperatorController extends Controller
                 continue;
             }
 
-            foreach ($operatorResult['data'] as $operatorData) {
-                $operatorId = $operatorData['OperatorID'] ?? $operatorData['Id'] ?? null;
+            $localCountry = Country::where('iso_code', $isoCode)->first();
+            if (!$localCountry) {
+                continue;
+            }
 
-                if (!$operatorId) {
+            $allowed = $allowedProviders[$isoCode] ?? [];
+            $filtered = [];
+
+            if (empty($allowed)) {
+                $filtered = $operatorResult['data']['Items'];
+            } else {
+                $filtered = collect($operatorResult['data']['Items'])->filter(function ($op) use ($allowed) {
+                    $name = strtolower($op['Name'] ?? '');
+                    $code = strtolower($op['ProviderCode'] ?? '');
+                    foreach ($allowed as $keyword) {
+                        if ($name === strtolower($keyword)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                })->values()->all();
+            }
+
+            foreach ($filtered as $operatorData) {
+                $providerCode = $operatorData['ProviderCode'] ?? null;
+
+                if(!$providerCode) {
                     continue;
                 }
 
-                $localCountry = Country::where('iso_code', $isoCode)->first();
-                if (!$localCountry) {
-                    continue;
-                }
+                $regionCodes = isset($operatorData['RegionCodes']) ? implode(',', $operatorData['RegionCodes']) : null;
+                $paymentTypes = isset($operatorData['PaymentTypes']) ? implode(',', $operatorData['PaymentTypes']) : null;
 
                 Operator::updateOrCreate(
-                    ['ding_operator_id' => (string) $operatorId],
+                    ['provider_code' => (string) $providerCode],
                     [
                         'name' => $operatorData['Name'] ?? 'Unknown',
+                        'provider_code' => $providerCode,
                         'slug' => strtolower(Str::slug($operatorData['Name'] ?? 'unknown')),
                         'country_id' => $localCountry->id,
+                        'logo_url' => $operatorData['LogoUrl'] ?? null,
+                        'region_codes' => $regionCodes,
+                        'payment_types' => $paymentTypes,
+                        'validation_regex' => $operatorData['ValidationRegex'] ?? null,
+                        'customer_care_number' => $operatorData['CustomerCareNumber'] ?? null,
                         'is_active' => true,
                     ]
                 );
@@ -121,19 +160,5 @@ class OperatorController extends Controller
         }
 
         return back()->with('success', $msg);
-    }
-
-    /**
-     * Helper: Convert ISO country code to flag emoji
-     */
-    private function getFlagEmoji(string $isoCode): string
-    {
-        $offset = ord('A');
-        $emoji = '';
-        $chars = str_split($isoCode);
-        foreach ($chars as $char) {
-            $emoji .= mb_chr(ord($char) - $offset + 0x1F1E6);
-        }
-        return $emoji;
     }
 }

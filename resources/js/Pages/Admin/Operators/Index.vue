@@ -1,22 +1,12 @@
 <script setup>
-import { Head, router, useForm } from "@inertiajs/vue3";
+import { Head, router } from "@inertiajs/vue3";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
-import InputLabel from "@/Components/InputLabel.vue";
-import TextInput from "@/Components/TextInput.vue";
-import PrimaryButton from "@/Components/PrimaryButton.vue";
-import DangerButton from "@/Components/DangerButton.vue";
-import SecondaryButton from "@/Components/SecondaryButton.vue";
 import { ref, computed } from "vue";
 
 defineOptions({ layout: AdminLayout });
 
 const props = defineProps({ operators: Object, countries: Array });
 
-const showAddModal = ref(false);
-const showEditModal = ref(false);
-const showDeleteModal = ref(false);
-const editingOperator = ref(null);
-const deletingOperator = ref(null);
 const syncing = ref(false);
 const search = ref(props.operators.query?.search || "");
 const countryFilter = ref(props.operators.query?.country_id || "");
@@ -52,65 +42,6 @@ function closeCountryDropdown() {
     countrySearch.value = "";
 }
 
-const form = useForm({
-    name: "",
-    ding_operator_id: "",
-    country_id: "",
-    logo_url: "",
-    display_order: 0,
-    is_active: true,
-});
-
-function openAddModal() {
-    form.reset();
-    form.country_id = "";
-    form.is_active = true;
-    showAddModal.value = true;
-}
-
-function openEditModal(op) {
-    editingOperator.value = op;
-    form.name = op.name;
-    form.ding_operator_id = op.ding_operator_id;
-    form.country_id = op.country_id;
-    form.logo_url = op.logo_url || "";
-    form.display_order = op.display_order || 0;
-    form.is_active = op.is_active;
-    showEditModal.value = true;
-}
-
-function submitAdd() {
-    form.post("/admin/operators", {
-        onSuccess: () => {
-            showAddModal.value = false;
-            form.reset();
-        },
-    });
-}
-
-function submitEdit() {
-    form.put(`/admin/operators/${editingOperator.value.id}`, {
-        onSuccess: () => {
-            showEditModal.value = false;
-            editingOperator.value = null;
-        },
-    });
-}
-
-function confirmDelete(op) {
-    deletingOperator.value = op;
-    showDeleteModal.value = true;
-}
-
-function deleteOperator() {
-    router.delete(`/admin/operators/${deletingOperator.value.id}`, {
-        onSuccess: () => {
-            showDeleteModal.value = false;
-            deletingOperator.value = null;
-        },
-    });
-}
-
 function syncFromDing() {
     syncing.value = true;
     router.post(
@@ -136,21 +67,6 @@ function applyFilters() {
         { search: search.value, country_id: countryFilter.value },
         { preserveState: true },
     );
-}
-
-function closeAddModal() {
-    showAddModal.value = false;
-    form.reset();
-}
-
-function closeEditModal() {
-    showEditModal.value = false;
-    editingOperator.value = null;
-}
-
-function closeDeleteModal() {
-    showDeleteModal.value = false;
-    deletingOperator.value = null;
 }
 </script>
 
@@ -209,12 +125,6 @@ function closeDeleteModal() {
                         ></path>
                     </svg>
                     {{ syncing ? "Syncing..." : "Sync from Ding" }}
-                </button>
-                <button
-                    @click="openAddModal"
-                    class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition whitespace-nowrap"
-                >
-                    + Add Operator
                 </button>
             </div>
         </div>
@@ -324,12 +234,12 @@ function closeDeleteModal() {
                             <th
                                 class="px-4 py-3 text-left text-xs font-medium text-dark-200 uppercase"
                             >
-                                Operator
+                                Provider
                             </th>
                             <th
                                 class="px-4 py-3 text-left text-xs font-medium text-dark-200 uppercase"
                             >
-                                Ding ID
+                                Provider Code
                             </th>
                             <th
                                 class="px-4 py-3 text-left text-xs font-medium text-dark-200 uppercase"
@@ -340,11 +250,6 @@ function closeDeleteModal() {
                                 class="px-4 py-3 text-left text-xs font-medium text-dark-200 uppercase"
                             >
                                 Status
-                            </th>
-                            <th
-                                class="px-4 py-3 text-right text-xs font-medium text-dark-200 uppercase"
-                            >
-                                Actions
                             </th>
                         </tr>
                     </thead>
@@ -362,7 +267,7 @@ function closeDeleteModal() {
                             <td
                                 class="px-4 py-3 text-sm font-mono text-dark-300"
                             >
-                                {{ op.ding_operator_id }}
+                                {{ op.provider_code || "-" }}
                             </td>
                             <td class="px-4 py-3 text-sm text-dark-200">
                                 {{ op.country?.flag_emoji }}
@@ -379,20 +284,6 @@ function closeDeleteModal() {
                                 >
                                     {{ op.is_active ? "Active" : "Inactive" }}
                                 </span>
-                            </td>
-                            <td class="px-4 py-3 text-right space-x-2">
-                                <button
-                                    @click="openEditModal(op)"
-                                    class="text-primary-light hover:text-white text-sm transition"
-                                >
-                                    Edit
-                                </button>
-                                <button
-                                    @click="confirmDelete(op)"
-                                    class="text-red-400 hover:text-red-300 text-sm transition"
-                                >
-                                    Delete
-                                </button>
                             </td>
                         </tr>
                         <tr v-if="!operators.data?.length">
@@ -432,301 +323,6 @@ function closeDeleteModal() {
                         v-html="link.label"
                     />
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add Operator Modal -->
-    <div
-        v-if="showAddModal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4"
-    >
-        <div
-            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            @click="closeAddModal"
-        ></div>
-        <div
-            class="relative bg-dark-800 rounded-2xl border border-dark-600 p-6 w-full max-w-lg shadow-2xl"
-        >
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold text-white">Add Operator</h3>
-                <button
-                    @click="closeAddModal"
-                    class="text-dark-400 hover:text-white transition"
-                >
-                    <svg
-                        class="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"
-                        ></path>
-                    </svg>
-                </button>
-            </div>
-            <form @submit.prevent="submitAdd" class="space-y-4">
-                <div>
-                    <InputLabel value="Operator Name *" />
-                    <TextInput
-                        v-model="form.name"
-                        type="text"
-                        class="w-full mt-1"
-                        required
-                    />
-                    <p
-                        v-if="form.errors.name"
-                        class="text-red-400 text-xs mt-1"
-                    >
-                        {{ form.errors.name }}
-                    </p>
-                </div>
-                <div>
-                    <InputLabel value="Ding Operator ID *" />
-                    <TextInput
-                        v-model="form.ding_operator_id"
-                        type="text"
-                        class="w-full mt-1"
-                        required
-                        placeholder="e.g. 1"
-                    />
-                    <p
-                        v-if="form.errors.ding_operator_id"
-                        class="text-red-400 text-xs mt-1"
-                    >
-                        {{ form.errors.ding_operator_id }}
-                    </p>
-                </div>
-                <div>
-                    <InputLabel value="Country *" />
-                    <select
-                        v-model="form.country_id"
-                        class="w-full border border-dark-600 rounded-lg px-4 py-3 bg-dark-700 text-white text-sm mt-1 outline-none"
-                        required
-                    >
-                        <option value="">Select country</option>
-                        <option
-                            v-for="c in countries"
-                            :key="c.id"
-                            :value="c.id"
-                        >
-                            {{ c.flag_emoji }} {{ c.name }}
-                        </option>
-                    </select>
-                    <p
-                        v-if="form.errors.country_id"
-                        class="text-red-400 text-xs mt-1"
-                    >
-                        {{ form.errors.country_id }}
-                    </p>
-                </div>
-                <div>
-                    <InputLabel value="Logo URL" />
-                    <TextInput
-                        v-model="form.logo_url"
-                        type="url"
-                        class="w-full mt-1"
-                        placeholder="https://..."
-                    />
-                </div>
-                <div>
-                    <InputLabel value="Display Order" />
-                    <TextInput
-                        v-model.number="form.display_order"
-                        type="number"
-                        class="w-full mt-1"
-                    />
-                </div>
-                <div class="flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        v-model="form.is_active"
-                        id="add-active"
-                        class="rounded"
-                    />
-                    <label for="add-active" class="text-sm text-dark-200"
-                        >Active</label
-                    >
-                </div>
-                <div class="flex gap-3 pt-4">
-                    <PrimaryButton
-                        type="submit"
-                        :disabled="form.processing"
-                        class="flex-1"
-                    >
-                        {{ form.processing ? "Adding..." : "Add Operator" }}
-                    </PrimaryButton>
-                    <SecondaryButton type="button" @click="closeAddModal"
-                        >Cancel</SecondaryButton
-                    >
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Edit Operator Modal -->
-    <div
-        v-if="showEditModal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4"
-    >
-        <div
-            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            @click="closeEditModal"
-        ></div>
-        <div
-            class="relative bg-dark-800 rounded-2xl border border-dark-600 p-6 w-full max-w-lg shadow-2xl"
-        >
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold text-white">Edit Operator</h3>
-                <button
-                    @click="closeEditModal"
-                    class="text-dark-400 hover:text-white transition"
-                >
-                    <svg
-                        class="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"
-                        ></path>
-                    </svg>
-                </button>
-            </div>
-            <form @submit.prevent="submitEdit" class="space-y-4">
-                <div>
-                    <InputLabel value="Operator Name *" />
-                    <TextInput
-                        v-model="form.name"
-                        type="text"
-                        class="w-full mt-1"
-                        required
-                    />
-                    <p
-                        v-if="form.errors.name"
-                        class="text-red-400 text-xs mt-1"
-                    >
-                        {{ form.errors.name }}
-                    </p>
-                </div>
-                <div>
-                    <InputLabel value="Ding Operator ID *" />
-                    <TextInput
-                        v-model="form.ding_operator_id"
-                        type="text"
-                        class="w-full mt-1"
-                        required
-                    />
-                    <p
-                        v-if="form.errors.ding_operator_id"
-                        class="text-red-400 text-xs mt-1"
-                    >
-                        {{ form.errors.ding_operator_id }}
-                    </p>
-                </div>
-                <div>
-                    <InputLabel value="Country *" />
-                    <select
-                        v-model="form.country_id"
-                        class="w-full border border-dark-600 rounded-lg px-4 py-3 bg-dark-700 text-white text-sm mt-1 outline-none"
-                        required
-                    >
-                        <option value="">Select country</option>
-                        <option
-                            v-for="c in countries"
-                            :key="c.id"
-                            :value="c.id"
-                        >
-                            {{ c.flag_emoji }} {{ c.name }}
-                        </option>
-                    </select>
-                    <p
-                        v-if="form.errors.country_id"
-                        class="text-red-400 text-xs mt-1"
-                    >
-                        {{ form.errors.country_id }}
-                    </p>
-                </div>
-                <div>
-                    <InputLabel value="Logo URL" />
-                    <TextInput
-                        v-model="form.logo_url"
-                        type="url"
-                        class="w-full mt-1"
-                    />
-                </div>
-                <div>
-                    <InputLabel value="Display Order" />
-                    <TextInput
-                        v-model.number="form.display_order"
-                        type="number"
-                        class="w-full mt-1"
-                    />
-                </div>
-                <div class="flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        v-model="form.is_active"
-                        id="edit-active"
-                        class="rounded"
-                    />
-                    <label for="edit-active" class="text-sm text-dark-200"
-                        >Active</label
-                    >
-                </div>
-                <div class="flex gap-3 pt-4">
-                    <PrimaryButton
-                        type="submit"
-                        :disabled="form.processing"
-                        class="flex-1"
-                    >
-                        {{ form.processing ? "Saving..." : "Save Changes" }}
-                    </PrimaryButton>
-                    <SecondaryButton type="button" @click="closeEditModal"
-                        >Cancel</SecondaryButton
-                    >
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div
-        v-if="showDeleteModal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4"
-    >
-        <div
-            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            @click="closeDeleteModal"
-        ></div>
-        <div
-            class="relative bg-dark-800 rounded-2xl border border-dark-600 p-6 w-full max-w-md shadow-2xl"
-        >
-            <h3 class="text-xl font-bold text-white mb-2">Delete Operator</h3>
-            <p class="text-dark-300 mb-6">
-                Are you sure you want to delete
-                <strong class="text-white">{{ deletingOperator?.name }}</strong
-                >? This action cannot be undone.
-            </p>
-            <div class="flex gap-3">
-                <DangerButton
-                    @click="deleteOperator"
-                    :disabled="form.processing"
-                    class="flex-1"
-                >
-                    Delete
-                </DangerButton>
-                <SecondaryButton @click="closeDeleteModal"
-                    >Cancel</SecondaryButton
-                >
             </div>
         </div>
     </div>

@@ -18,30 +18,39 @@ use App\Events\RechargeFailed;
 
 class DingConnectService
 {
-    protected PendingRequest $http;
+    protected string $baseUrl;
+    protected string $apiKey;
+    protected string $customerId;
 
     public function __construct()
     {
-        $this->http = Http::timeout(config('platform.dingconnect.timeout'))
-            ->withHeaders([
-                'Authorization' => 'Bearer ' . config('platform.dingconnect.api_key'),
-                'Content-Type' => 'application/json',
-            ]);
+        $this->baseUrl = rtrim(config('platform.dingconnect.base_url'), '/');
+        $this->apiKey = config('platform.dingconnect.api_key');
+        $this->customerId = config('platform.dingconnect.customer_id') ?? '';
     }
 
     /**
-     * Send a top-up request to DingConnect
+     * Helper: make a GET request with api_key header
      */
-    public function sendTopUp(string $mobileNumber, string $operatorId, string $countryCode, float $amount): array
+    protected function get(string $endpoint, array $params = []): array
     {
         try {
-            $response = $this->http->post(config('platform.dingconnect.base_url') . '/api/v1/Transfer', [
-                'MobileNumber' => $mobileNumber,
-                'OperatorID' => $operatorId,
-                'CountryCode' => $countryCode,
-                'Amount' => $amount,
-                'Currency' => config('platform.wallet.currency'),
-                'CallBackURL' => config('platform.dingconnect.callback_url'),
+            $url = $this->baseUrl . $endpoint;
+            if (!empty($params)) {
+                $url .= '?' . http_build_query($params);
+            }
+
+            Log::info('DingConnect GET', ['url' => $url]);
+
+            $response = Http::timeout(30)
+                ->withHeaders([
+                    'api_key' => $this->apiKey,
+                ])
+                ->get($url);
+
+            Log::info('DingConnect GET response', [
+                'status' => $response->status(),
+                'body' => substr($response->body(), 0, 300),
             ]);
 
             if ($response->successful()) {
@@ -49,160 +58,131 @@ class DingConnectService
                 if (($data['ResultCode'] ?? 0) == 1) {
                     return ['success' => true, 'data' => $data];
                 }
-                return ['success' => false, 'error' => $data['ErrorCodes'][0] ?? $data['Message'] ?? 'Transfer failed', 'raw' => $data];
+                return ['success' => false, 'error' => $data['ErrorCodes'][0] ?? $data['Message'] ?? 'API error', 'raw' => $data];
             }
 
-            return ['success' => false, 'error' => $response->json('Message') ?? 'Unknown error', 'status_code' => $response->status()];
+            return ['success' => false, 'error' => 'HTTP ' . $response->status(), 'body' => substr($response->body(), 0, 200)];
 
         } catch (\Exception $e) {
-            Log::error('DingConnect API Error: ' . $e->getMessage());
-            return ['success' => false, 'error' => 'API connection failed: ' . $e->getMessage()];
-        }
-    }
-
-    /**
-     * Check transaction status from DingConnect
-     */
-    public function checkStatus(string $dingTransactionId): array
-    {
-        try {
-            $response = $this->http->get(config('platform.dingconnect.base_url') . '/api/v1/Transfer/' . $dingTransactionId);
-
-            if ($response->successful()) {
-                return ['success' => true, 'data' => $response->json()];
-            }
-
-            return ['success' => false, 'error' => $response->json('Message') ?? 'Unknown error'];
-
-        } catch (\Exception $e) {
-            Log::error('DingConnect Status Check Error: ' . $e->getMessage());
+            Log::error('DingConnect GET Error: ' . $e->getMessage());
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
 
     /**
-     * Fetch providers (operators) from DingConnect using GetProviders endpoint
+     * Helper: make a POST request with api_key header
      */
-    public function getProviders(?string $countryIso = null, ?string $providerCodes = null): array
+    protected function post(string $endpoint, array $data = []): array
     {
         try {
-            $url = config('platform.dingconnect.base_url') . '/api/v1/GetProviders';
+            $url = $this->baseUrl . $endpoint;
 
-            $params = [];
-            if ($countryIso) {
-                $params['countryIsos'] = $countryIso;
-            }
-            if ($providerCodes) {
-                $params['providerCodes'] = $providerCodes;
-            }
+            Log::info('DingConnect POST', ['url' => $url, 'data' => $data]);
 
-            if (!empty($params)) {
-                $url .= '?' . http_build_query($params);
-            }
+            $response = Http::timeout(30)
+                ->withHeaders([
+                    'api_key' => $this->apiKey,
+                    'Content-Type' => 'application/json',
+                ])
+                ->post($url, $data);
 
-            $response = $this->http->get($url);
-            Log::info($response);
-            if ($response->successful()) {
-                $data = $response->json();
-                if (($data['ResultCode'] ?? 0) == 1) {
-                    $items = $data['Items'] ?? [];
-                    return ['success' => true, 'data' => $items];
-                }
-                return ['success' => false, 'error' => $data['ErrorCodes'][0] ?? 'Failed to fetch providers'];
-            }
-
-            return ['success' => false, 'error' => 'HTTP ' . $response->status()];
-
-        } catch (\Exception $e) {
-            Log::error('DingConnect Providers Error: ' . $e->getMessage());
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
-    }
-
-    /**
-     * Fetch country list from DingConnect AND save to DB
-     */
-    public function getCountries(): array
-    {
-        try {
-            $url = config('platform.dingconnect.base_url') . '/api/v1/GetCountries';
-            Log::info('DingConnect: Fetching countries', ['url' => $url]);
-
-            $response = $this->http->get($url);
-
-            Log::info('DingConnect: Countries response', [
+            Log::info('DingConnect POST response', [
                 'status' => $response->status(),
-                'body' => substr($response->body(), 0, 200),
-                'successful' => $response->successful(),
+                'body' => substr($response->body(), 0, 300),
             ]);
 
             if ($response->successful()) {
                 $data = $response->json();
                 if (($data['ResultCode'] ?? 0) == 1) {
-                    $items = $data['Items'] ?? [];
-                    $synced = 0;
-
-                    foreach ($items as $country) {
-                        $isoCode = strtoupper($country['CountryIso'] ?? '');
-                        $countryName = $country['CountryName'] ?? '';
-
-                        if ($isoCode) {
-                            Country::updateOrCreate(
-                                ['iso_code' => $isoCode],
-                                [
-                                    'name' => $countryName,
-                                    'iso_code_3' => $isoCode,
-                                    'flag_emoji' => $this->getFlagEmoji($isoCode),
-                                    'is_active' => true,
-                                ]
-                            );
-                            $synced++;
-                        }
-                    }
-
-                    Log::info('DingConnect: Countries synced to DB', ['count' => $synced]);
-                    return [
-                        'success' => true,
-                        'data' => $items,
-                        'synced' => $synced,
-                    ];
+                    return ['success' => true, 'data' => $data];
                 }
-
-                return ['success' => false, 'error' => 'API returned error: ' . ($data['ErrorCodes'][0] ?? 'Unknown')];
+                return ['success' => false, 'error' => $data['ErrorCodes'][0] ?? $data['Message'] ?? 'API error', 'raw' => $data];
             }
 
-            return ['success' => false, 'error' => 'HTTP ' . $response->status()];
+            return ['success' => false, 'error' => 'HTTP ' . $response->status(), 'body' => substr($response->body(), 0, 200)];
 
         } catch (\Exception $e) {
-            Log::error('DingConnect Countries Error: ' . $e->getMessage());
+            Log::error('DingConnect POST Error: ' . $e->getMessage());
             return ['success' => false, 'error' => $e->getMessage()];
         }
+    }
+
+    // =========================================================================
+    // PUBLIC API METHODS
+    // =========================================================================
+
+    /**
+     * GetCountries - Fetch all countries from DingConnect
+     * GET /api/V1/GetCountries
+     */
+    public function getCountries(): array
+    {
+        return $this->get('/api/V1/GetCountries');
     }
 
     /**
-     * Check DingConnect account balance
+     * GetProviders - Fetch operators/providers for a country
+     * GET /api/V1/GetProviders?countryIsos={iso}
+     */
+    public function getProviders(?string $countryIso = null, ?string $providerCodes = null): array
+    {
+        $params = [];
+        if ($countryIso) {
+            $params['countryIsos'] = $countryIso;
+        }
+        if ($providerCodes) {
+            $params['providerCodes'] = $providerCodes;
+        }
+        return $this->get('/api/V1/GetProviders', $params);
+    }
+
+    /**
+     * Balance - Check account balance
+     * GET /api/V1/Balance
      */
     public function getBalance(): array
     {
-        try {
-            $response = $this->http->get(config('platform.dingconnect.base_url') . '/api/v1/Balance');
-
-            if ($response->successful()) {
-                $data = $response->json();
-                return [
-                    'success' => true,
-                    'balance' => $data['Balance'] ?? null,
-                    'currency' => $data['Currency'] ?? null,
-                ];
-            }
-
-            return ['success' => false, 'error' => 'Failed to fetch balance'];
-
-        } catch (\Exception $e) {
-            Log::error('DingConnect Balance Error: ' . $e->getMessage());
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+        return $this->get('/api/V1/Balance');
     }
+
+    /**
+     * Transfer - Send a top-up / recharge
+     * POST /api/V1/Transfer
+     */
+    public function sendTopUp(string $mobileNumber, string $operatorId, string $countryCode, float $amount): array
+    {
+        $payload = [
+            'MobileNumber' => $mobileNumber,
+            'OperatorID' => $operatorId,
+            'CountryCode' => $countryCode,
+            'Amount' => $amount,
+            'Currency' => config('platform.wallet.currency', 'GBP'),
+        ];
+
+        if ($this->customerId) {
+            $payload['CustomerId'] = $this->customerId;
+        }
+
+        $callbackUrl = config('platform.dingconnect.callback_url');
+        if ($callbackUrl) {
+            $payload['CallBackURL'] = $callbackUrl;
+        }
+
+        return $this->post('/api/V1/Transfer', $payload);
+    }
+
+    /**
+     * Check transaction status
+     * GET /api/V1/Transfer/{id}
+     */
+    public function checkStatus(string $dingTransactionId): array
+    {
+        return $this->get('/api/V1/Transfer/' . $dingTransactionId);
+    }
+
+    // =========================================================================
+    // CALLBACK PROCESSING
+    // =========================================================================
 
     /**
      * Process incoming webhook callback from DingConnect
