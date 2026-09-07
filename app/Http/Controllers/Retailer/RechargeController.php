@@ -24,7 +24,7 @@ class RechargeController extends Controller
         $wallet = $walletService->getWallet($user);
         $availableBalance = $walletService->getAvailableBalance($wallet);
 
-        $countries = Country::where('is_active', true)->get(['id', 'name', 'iso_code', 'calling_code']);
+        $countries = Country::where('is_active', true)->get(['id', 'name', 'iso_code', 'calling_code', 'flag_emoji']);
 
         return Inertia::render('Retailer/Recharge/New', compact('wallet', 'availableBalance', 'countries'));
     }
@@ -35,10 +35,45 @@ class RechargeController extends Controller
 
         $operators = Operator::where('is_active', true)
             ->when($countryId, fn($q) => $q->where('country_id', $countryId))
+            ->orderBy('display_order')
             ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'logo_url']);
+            ->get(['id', 'name', 'slug', 'provider_code', 'logo_url', 'country_id']);
 
         return response()->json(['operators' => $operators]);
+    }
+
+    public function getProducts(Request $request, DingConnectService $dingService)
+    {
+        $request->validate([
+            'provider_code' => 'required|string',
+            'country_iso' => 'required|string|size:2',
+        ]);
+
+        $result = $dingService->getProducts($request->country_iso, $request->provider_code);
+
+        if (!$result['success']) {
+            return response()->json(['success' => false, 'error' => $result['error']], 400);
+        }
+
+        $products = collect($result['data']['Items'] ?? [])->map(function ($item) {
+            return [
+                'sku_code' => $item['SkuCode'],
+                'provider_code' => $item['ProviderCode'],
+                'display_text' => $item['DefaultDisplayText'] ?? '',
+                'receive_value' => (float) ($item['Maximum']['ReceiveValue'] ?? 0),
+                'receive_currency' => $item['Maximum']['ReceiveCurrencyIso'] ?? '',
+                'send_value' => (float) ($item['Maximum']['SendValue'] ?? 0),
+                'send_currency' => $item['Maximum']['SendCurrencyIso'] ?? 'GBP',
+                'commission_rate' => (float) ($item['CommissionRate'] ?? 0),
+                'validity_period' => $item['ValidityPeriodIso'] ?? '',
+                'benefits' => $item['Benefits'] ?? [],
+                'payment_types' => $item['PaymentTypes'] ?? [],
+                'processing_mode' => $item['ProcessingMode'] ?? 'Instant',
+                'region_code' => $item['RegionCode'] ?? '',
+            ];
+        })->values();
+
+        return response()->json(['success' => true, 'products' => $products]);
     }
 
     public function getPricing(Request $request, DingConnectService $dingService)
@@ -50,10 +85,9 @@ class RechargeController extends Controller
 
         $operator = Operator::findOrFail($request->operator_id);
 
-        // Pass-through pricing: retailer pays the same as recharge amount
-        // In production, get actual DingConnect cost from API
+        // Pass-through pricing
         $dingCost = (float) $request->amount;
-        $retailerCharged = $dingCost; // No markup - retailer pays same as Ding cost
+        $retailerCharged = $dingCost;
 
         return response()->json([
             'ding_cost' => $dingCost,
@@ -105,7 +139,6 @@ class RechargeController extends Controller
                 'user_agent' => $request->userAgent(),
             ]);
 
-            // Hold the amount in wallet
             $walletService = app(WalletService::class);
             $wallet = $walletService->getWallet($user);
             $walletService->hold($wallet, $retailerCharged, 'recharge', $transaction->id, "Hold for recharge - {$request->mobile_number}");

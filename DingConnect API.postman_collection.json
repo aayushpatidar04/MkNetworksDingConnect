@@ -1,0 +1,711 @@
+{
+  "info": {
+    "_postman_id": "3cf9c4e4-fce1-431c-8c20-cc28ba72b938",
+    "name": "DingConnect API",
+    "description": "The Ding API is a Level 0 REST web service.  We have used the <a href=\"http://swagger.io\">swagger</a> standard to describe this service. As a result, we are able to provide this interactive documentation page. For further information, you may view the <a href=\"https://www.dingconnect.com/Api/Description\">additional documentation</a>; read our <a href=\"https://www.dingconnect.com/Api/Faq\">FAQ</a> or contact partnersupport@ding.com",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "28872285",
+    "_collection_link": "https://go.postman.co/collection/28872285-3cf9c4e4-fce1-431c-8c20-cc28ba72b938?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "api/V1",
+      "item": [
+        {
+          "name": "GetCurrencies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/GetCurrencies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "GetCurrencies"
+              ]
+            },
+            "description": "*Get a list of supported currencies*\r\n\r\nRetrieves a list of standard three letter currency codes that the system supports, along with the currency name in English.\r\n\r\nPlease see the documentation section on [reference data](#reference-data).\r\n\r\nWe use <a href=\"https://en.wikipedia.org/wiki/ISO_4217\" target=\"_blank\">ISO 4217</a> for our currency codes."
+          },
+          "response": []
+        },
+        {
+          "name": "GetRegions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/GetRegions?countryIsos=<string>",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "GetRegions"
+              ],
+              "query": [
+                {
+                  "key": "countryIsos",
+                  "value": "<string>",
+                  "description": "Filter the list to regions in countries with the submitted countryIso."
+                }
+              ]
+            },
+            "description": "*Get a list of regions on the system*\r\n\r\nRetrieves a list of regions used in the system. Each region includes a Region Code, Region Name and CountryIso.\r\n\r\nPlease see the documentation section on [reference data](#reference-data)."
+          },
+          "response": []
+        },
+        {
+          "name": "GetCountries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/GetCountries",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "GetCountries"
+              ]
+            },
+            "description": "*Get a list of supported countries*\r\n\r\nRetrieves a list of standard two letter country codes that the system supports, along with the country name in English.\r\n\r\nPlease see the documentation section on [reference data](#reference-data).\r\n\r\nWe use <a href=\"https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2\" target=\"_blank\">ISO 3166-1 alpha-2</a> for our country codes, with the exception of XG used for products that are available for all countries."
+          },
+          "response": []
+        },
+        {
+          "name": "GetProviders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/GetProviders?providerCodes=<string>&countryIsos=<string>&regionCodes=<string>&accountNumber=<string>",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "GetProviders"
+              ],
+              "query": [
+                {
+                  "key": "providerCodes",
+                  "value": "<string>",
+                  "description": "Filter the list to providers with the submitted provider codes."
+                },
+                {
+                  "key": "countryIsos",
+                  "value": "<string>",
+                  "description": "Filter the list to providers in countries with the submitted countryIso."
+                },
+                {
+                  "key": "regionCodes",
+                  "value": "<string>",
+                  "description": "Filter the list to providers in regions with the submitted regionCodes."
+                },
+                {
+                  "key": "accountNumber",
+                  "value": "<string>",
+                  "description": "Filter the list to providers that are valid for the submitted account number. For phone number based products, the account number should be in international phone number format."
+                }
+              ]
+            },
+            "description": "*Get a list of product providers available to the agent*\r\n\r\nRetrieves the list of providers available to the agent.\r\n\r\nPlease see the documentation section on [querying](#querying).\r\n\r\n#### Name and ShortName\r\nIn some cases the `Name` property may include a country name or code. For example: \"Airtel India\" or\r\n\"Vodafone UK\". `ShortName` will be the `Name` with country information removed, for example \"Airtel\" or \"Vodafone\". However\r\nthere are cases where that will make no sense: `Nepal Telecom` for example.  In these cases `ShortName` will be the same as `Name`\r\n\r\n#### Validation Regex\r\nWhen a transfer is attempted against products that a provider supplies, the first thing we will do is evaluate the \r\nsubmitted Account Number against the `ValidationRegex`. The regex may contain multiple \"alternates\" in its definition\r\nto cover all the products that the provider supplies, as a result an account number may pass the regex, but be invalid\r\nfor one product and valid for another.\r\n\r\nThe Ding system is .Net based and as a result we will use the <a href=\"https://msdn.microsoft.com/en-us/library/hs600312\" target=\"_blank\">Regex library from Microsoft</a>. That library is reported to\r\nbe Perl 5 compatible. We make every effort to ensure that the regular expression constructs we use are cross-language\r\ncompatible and we use <a href=\"https://regex101.com/\" target=\"_blank\">regex101</a> to test our regular expressions using the \"pcre\" \r\nsetting.\r\n\r\n#### Customer Care Number\r\nFor certain products like PINs, it may be necessary to include a customer care number of the provider on the receipt\r\nin order to handle customer care issues.\r\n\r\n#### Operator Logo\r\nIf available, the `LogoUrl` field will be populated with a link to the provider's logo. \r\nYou can provide the height, width, or both, of the logo by following the sample query \"?height=xxx&amp;width=yyy\". It is advised that \r\nthe preferred dominant dimension is the only one specified, as the logo may add white space to fully fill both dimensions.\r\nA sample of a URL with height specified is: <a href=\"https://imagerepo.ding.com/logo/AI/IN.png?height=100\" target=\"_blank\">https://imagerepo.ding.com/logo/AI/IN.png?height=100</a>"
+          },
+          "response": []
+        },
+        {
+          "name": "GetProviderStatus",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/GetProviderStatus?providerCodes=AIIN",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "GetProviderStatus"
+              ],
+              "query": [
+                {
+                  "key": "providerCodes",
+                  "value": "AIIN",
+                  "description": "Filter the list to providers with the submitted provider codes."
+                }
+              ]
+            },
+            "description": "*Get the current status of product providers*\r\n\r\nProviders can be suspended or be in an error state. This API allows an agent to find out if it will be possible\r\nto send a transfer to a particular provider.\r\n\r\nPlease see the documentation section on [querying](#querying).\r\n\r\n#### Message\r\nThe `Message` property in the response is unformatted and non-localized text that gives further details of the \r\nstatus of an operator. This message is directed at the agent and is not suitable for end-user consumption."
+          },
+          "response": []
+        },
+        {
+          "name": "GetProducts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/GetProducts?countryIsos=IN&providerCodes=AIIN&skuCodes=&benefits=<string>&regionCodes=<string>&accountNumber=<string>",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "GetProducts"
+              ],
+              "query": [
+                {
+                  "key": "countryIsos",
+                  "value": "IN",
+                  "description": "Filter the list to products for countries with the given ISOs."
+                },
+                {
+                  "key": "providerCodes",
+                  "value": "AIIN",
+                  "description": "Filter the list to products supplied by providers with the submitted provider codes."
+                },
+                {
+                  "key": "skuCodes",
+                  "value": "",
+                  "description": "Filter the list to products with the submitted SkuCodes."
+                },
+                {
+                  "key": "benefits",
+                  "value": "<string>",
+                  "description": "Filter the list to products with the listed benefits."
+                },
+                {
+                  "key": "regionCodes",
+                  "value": "<string>",
+                  "description": "Filter the list to products in regions with the submitted regionCodes."
+                },
+                {
+                  "key": "accountNumber",
+                  "value": "<string>",
+                  "description": "Filter the list to products that are valid for the submitted account number. For phone number based products, the account number should be in international phone number format."
+                }
+              ]
+            },
+            "description": "*Get a list of products that can be used in SendTransfer*\r\n\r\nThis API returns a list of available products that satisfy request criteria.\r\n\r\nPlease see the documentation section on [querying](#querying).\r\n\r\n#### Localization\r\nProducts have localized descriptions and you should call `GetProductDescriptions` to get the appropriate\r\nlocalizations.  See the section on [Localization](#localization) above.\r\n\r\n#### Setting Definitions\r\nSome providers require additional information to be submitted with transfer requests in the form of name-value\r\nsettings where the `Name` of the setting is defined by the provider and the `Value` is submitted with the request.\r\n\r\nIf a provider does require this, `SettingDefinitions` will be populated with the definition of those settings. The\r\n`Name` of each definition is used in transfer requests, and the Description will contain a hint as to what the\r\n`Value`s should contain.  \r\n\r\nThe `Name` must be used verbatim (including casing and any special characters) in the SendTransfer request.\r\n\r\nThe `Description` is unformatted and non-localized so is not appropriate for any customer facing UI elements.\r\nThis field is informational and targeted at the API agent/integrator.\r\n\r\n#### Commission Rate\r\nThe rate of commission that will be applied for selling this product (if applicable).\r\n\r\n#### Processing Mode\r\nProducts can be processed in real-time (`ProcessingMode=Instant`), or some time in the future (`ProcessingMode=Batch`).\r\n\r\n* **Instant:** We will attempt to process the transfer immediately. The response from `SendTransfer` will \r\ncontain a transfer record whose `ProcessingState` is one of `Completed` or `Failed`.\r\n* **Batch:** We will process the transfer later. The response from `SendTransfer` will contain a transfer \r\nrecord with a `ProcessingState` of `Submitted`. The agent should use `ListTransferRecords` to periodically \r\ncheck the status of the transfer.\r\n\r\n#### Redemption Mechanism\r\nSome products require further intervention from the end-user or agent before their benefit is realized.  For example, the user may\r\nneed to dial a number and enter a PIN that was returned in the receipt or the agent may need to complete other steps before the \r\nproduct can be sold.  \r\n\r\nThis property can contain the following values:\r\n\r\n* **Immediate:** The transfer requires no further action from the customer, and will be received immediately.\r\n\r\n* **ReadReceipt:** Further instructions for how to complete the transfer will be printed within the `ReceiptText` property and the end user should\r\nfollow those instructions. For example: PIN based products, or Long Distance Minutes.\r\n\r\n* **ReadAdditionalInformation:** Further instructions for how to complete or use the transfer are in the `AdditionalInformation` property of the Product\r\nand the agent will need to code their application to follow those instructions.  For example, a user may be required to submit their account number\r\nagainst one product (to \"register\" their phone number) before they may use other products\r\n\r\n#### Benefits\r\nEach product can convey a number of benefits on an account number, including account top up, data, bundles, sms, long distance credit, and so forth.\r\n\r\nCurrent benefits include the following: \r\n\r\n*  Mobile\r\n*  Minutes\r\n*  Data\r\n*  LongDistance\r\n*  Electricity\r\n*  TV\r\n*  Internet\r\n*  Utility\r\n*  Balance\r\n\r\nThe benefit list will be extended in time. To make your system robust, we recommend you implement your integration so that it can handle any benefit type.  \r\nAlternatively, you could routinely filter the product list to a list of benefits supported by your application.\r\n\r\n#### Validity Period\r\nSome transfers must be redeemed within a certain time-window by the user after purchase. `ValidityPeriodIso` communicates how long the user will\r\nhave to complete the transaction. For example, many PIN based products must be redeemed before the validity period elapses. \r\n\r\nWe use the ISO8601 duration format. For example, `P30D` is 30 days.\r\n\r\n#### UAT Number\r\nTransfers submitted using this number will be in test mode only. No balance will be deducted, but no\r\nprovider transaction will actually be performed.  \r\n\r\n#### Additional Information \r\nFrom time to time we will try to offer completely new or non-standard products to existing agents that\r\ncan only be redeemed using non-standard mechanisms/procedures. We will use this field to communicate any\r\ninformation that we think will help the agent integrate. \r\n\r\nThis field is unformatted, not localized and unsuitable for end-user display.\r\n\r\n### Price Properties\r\n#### Agent and Customer Fees\r\nThe `CustomerFee` is the amount (in the agent currency) that the agent has asked us to collect from the customer. We will subtract this from the `SendValue` before passing to the provider. \r\n\r\nThe `DistributorFee` is the amount (in agent currency) that Ding charges the agent to fulfil the transfer.  We will deduct this amount from the agent balance in addition to the `SendValue`.  \r\n\r\nFor example, if\r\n- SendValue = 10\r\n- CustomerFee = 1\r\n- DistributorFee = 2\r\nThen\r\n- SendValue - CustomerFee (= 9) will be passed to the Provider, and \r\n- SendValue + DistributorFee (= 12) will be deducted from the agent balance\r\n\r\n#### Tax Calculation\r\nCountries around the world have different ways of quoting Tax values.  `TaxCalculation` indicates how you should interpret the values in the other Tax fields. \r\n\r\nPossible values are:\r\n* Inclusive\r\n* Exclusive\r\n\r\nPlease see <a href=\"https://en.wikipedia.org/wiki/Tax_rate#Inclusive_and_exclusive\" target=\"_blank\">Tax Rates on Wikipedia</a> for an explanation of the values.\r\n\r\nIf the `TaxCalculation` field is left blank, then tax is handled by the provider."
+          },
+          "response": []
+        },
+        {
+          "name": "GetProductDescriptions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/GetProductDescriptions?languageCodes=<string>&skuCodes=<string>",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "GetProductDescriptions"
+              ],
+              "query": [
+                {
+                  "key": "languageCodes",
+                  "value": "<string>",
+                  "description": "Filter the list to product descriptions with the submitted language codes."
+                },
+                {
+                  "key": "skuCodes",
+                  "value": "<string>",
+                  "description": "Filter the list to descriptions for products with the submitted SkuCodes."
+                }
+              ]
+            },
+            "description": "*Get localized strings for products*\r\n\r\nPlease see the documentation section on [localization](#localization).\r\n\r\nPlease see the documentation section on [querying](#querying)."
+          },
+          "response": []
+        },
+        {
+          "name": "SendTransfer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "SkuCode",
+                  "value": "<string>",
+                  "description": "(Required) Code provided by GetProducts API"
+                },
+                {
+                  "key": "SendValue",
+                  "value": "<double>",
+                  "description": "(Required) The transfer value to be sent. Specified to two decimal places of accuracy of the major currency unit, e.g. 3.17 USD."
+                },
+                {
+                  "key": "AccountNumber",
+                  "value": "<string>",
+                  "description": "(Required) The account number to target"
+                },
+                {
+                  "key": "DistributorRef",
+                  "value": "<string>",
+                  "description": "(Required) Unique identifier in the distributor system to be associated with the transfer"
+                },
+                {
+                  "key": "ValidateOnly",
+                  "value": "<boolean>",
+                  "description": "(Required) Validate the request with the provider without doing a transfer"
+                },
+                {
+                  "key": "SendCurrencyIso",
+                  "value": "<string>",
+                  "description": "The currency of the `SendValue`. If this is null or empty, we will assume distributor currency."
+                },
+                {
+                  "key": "Settings",
+                  "value": "{\"Name\":\"<string>\",\"Value\":\"<string>\"}",
+                  "description": "Product specific name/value pairs to be associated with the transfer request"
+                },
+                {
+                  "key": "Settings",
+                  "value": "{\"Name\":\"<string>\",\"Value\":\"<string>\"}",
+                  "description": "Product specific name/value pairs to be associated with the transfer request"
+                },
+                {
+                  "key": "BillRef",
+                  "value": "<string>",
+                  "description": "Bill reference. Required when product has \"LookupBillsRequired\" set to true."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/SendTransfer",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "SendTransfer"
+              ]
+            },
+            "description": "*Send a transfer to an account*\r\n\r\nAn agent will construct a request that contains a product `SkuCode` and a `SendValue` that\r\nis between the Min and Max price (inclusive). The agent should also include a `DistributorRef` that \r\nuniquely identifies the transfer within their system.\r\n\r\nSendTransfer will respond with the transfer that was created - including a `TransferRef` that uniquely identifies the transfer within\r\nour system. There will also be information about the state of the transfer and the amount that was received.\r\n\r\nOn success, we will deduct the value of the transfer from the agent balance and apply any applicable commissions.\r\n\r\nThe SendTranfer method has a maximum proccessing time of 90 seconds. After 90 seconds, if the SendTransfer request is not completed, the system will return a response with `ProviderTimedOut`. \r\nThis transaction will be treated as a failed transaction and the balance will not be deducted. \r\n\r\n#### Sku Codes\r\nYou should only use `SkuCode` values returned by the `GetProducts` API call. No attempt should be made to guess or manufacture SkuCodes.  \r\nProducts can be discontinued from time to time, and it is important that you keep up-to-date with the products available to your\r\naccount by regularly calling `GetProducts`.  \r\n\r\n#### ValidateOnly\r\nWhen `ValidateOnly=true`, we will validate the request in our system to give an indication if a non validate transfer\r\nwould succeed with the submitted parameters.  We will attempt to contact the product provider to see if the\r\nAccountNumber is valid in their system.  However, not all providers have a mechanism to validate account numbers. In\r\nthis case the system can not indicate if the SendTransfer will fail in advance.  \r\n\r\nThe agent balance will not be deducted during ValidateOnly, however the balance will be checked.\r\n\r\nWhen `ValidateOnly=true`, the `Price` in the response should be interpreted as an estimate only.\r\n\r\nWe will not assign a `TransferId` to the response when `ValidateOnly=true`\r\n\r\n#### Settings\r\nSome products declare `SettingDefintions` that mandate name-value pairs that can be submitted with the transfer and will be passed to\r\nthe Provider. \r\n\r\nAgents can submit their own name-value pairs and we will store them with the transfer. These name-value pairs\r\ncan be queried upon using the `ListTransferRecords` method.\r\n\r\n#### Processing State\r\n`ProcessingState` will indicate the current state of the transfer as it progresses through our system over time.\r\n\r\n- **Submitted**: The transfer was just submitted to the system and we have a record of it.\r\n- **Processing**: The system has started processing the request and we are in the act of fulfilling the transfer.\r\n- **Complete**: The transfer request is finished and it was successful.\r\n- **Failed**: The transfer request is finished, but there was some form of error.\r\n- **Cancelled**: The transfer request was cancelled.\r\n- **Cancelling**: A request to cancel the transfer has been sent to the provider.\r\n\r\n#### Receipts\r\nIn some cases there will be a `ReceiptText` in the response which will contain text that the product provider responded with, and this may\r\ncontain further instructions for the end user.  \r\n\r\nSometimes the formatting of the ReceiptText returned by the provider is not acceptable, and an agent would like \r\nto use the values in their own template. For example in a HTML page, or on a space restricted device. `ReceiptParams` will contain \r\ninformation in name-value pairs that can be used to populate a template. The actual names will vary by provider and we will endeavour \r\nto supply all the right pairs.  \r\n\r\nIf there is a PIN code available, 'ReceiptParams' will contain the key 'pin' with it's associated value.\r\n\r\n`ReceiptParams` may contain other values related to the provider, if the provider supplies an identifier for the transaction it will be returned as 'providerRef' in `ReceiptParams`, otherwise ‘providerRef’ will not be returned.\r\n\r\nIn some cases, we do not control the receipt text returned by the provider, and from time to time they may alter\r\ntheir text. If this happens, a name-value pair that previously existed in ReceiptParams dictionary may \r\ndisappear or a new one may pop up. Your application should be robust to these kind of changes."
+          },
+          "response": []
+        },
+        {
+          "name": "EstimatePrices",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "SkuCode",
+                  "value": "<string>"
+                },
+                {
+                  "key": "BatchItemRef",
+                  "value": "<string>"
+                },
+                {
+                  "key": "SendValue",
+                  "value": "<decimal>"
+                },
+                {
+                  "key": "SendCurrencyIso",
+                  "value": "<string>"
+                },
+                {
+                  "key": "ReceiveValue",
+                  "value": "<decimal>"
+                },
+                {
+                  "key": "SkuCode",
+                  "value": "<string>"
+                },
+                {
+                  "key": "BatchItemRef",
+                  "value": "<string>"
+                },
+                {
+                  "key": "SendValue",
+                  "value": "<decimal>"
+                },
+                {
+                  "key": "SendCurrencyIso",
+                  "value": "<string>"
+                },
+                {
+                  "key": "ReceiveValue",
+                  "value": "<decimal>"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/EstimatePrices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "EstimatePrices"
+              ]
+            },
+            "description": "*Estimate prices for send or receive values*\r\n\r\nBefore a transfer is attempted, it is impossible to know the exact value that an account will receive due to fluctuating foreign exchange rates, provider promotions and fees.\r\nThis API call will attempt to estimate, from the current prices in the products list, what receive value will result from a given send value or vice versa.\r\n\r\nPlease see the documentation section on [batching](#batching).\r\n\r\n### Input parameters\r\nIn each input, `SendValue` and `ReceiveValue` cannot both be non-zero.\r\n\r\nIf `ReceiveValue` is non-zero we will attempt to estimate the price that the customer would need to *send* (in the agent currency) in order to receive the given `ReceiveValue`.\r\n\r\nIf `SendValue` is non-zero (and `SendCurrencyIso` is null or empty) we will attempt to estimate what the customer would *receive* for the given `SendValue` (and send value would be interpreted as a value expressed in the agent currency).\r\n\r\nIf `SendValue` is non-zero and `SendCurrencyIso` is specified, we will attempt to estimate what the customer would *receive* for the given `SendValue/SendCurrencyIso`.  The agent\r\nshould contact Ding if he/she wishes to send in currencies other than the main currency of his/her account."
+          },
+          "response": []
+        },
+        {
+          "name": "GetBalance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/GetBalance",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "GetBalance"
+              ]
+            },
+            "description": "*Get the current agent balance*\r\n\r\nReturns the current agent balance. This will include any commission-on-sale increments, but will not reflect any\r\ntransfers that are currently processing. \r\n\r\nFor Instant transfers, the balance is decremented after a successful interaction with the product provider.\r\nFor Batch transfers, the balance is decremented immediately, and will be refunded later in case of failure."
+          },
+          "response": []
+        },
+        {
+          "name": "GetPromotions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/GetPromotions?countryIsos=<string>&providerCodes=<string>&accountNumber=<string>",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "GetPromotions"
+              ],
+              "query": [
+                {
+                  "key": "countryIsos",
+                  "value": "<string>",
+                  "description": "Filter the list to promotions for countries with the given ISOs."
+                },
+                {
+                  "key": "providerCodes",
+                  "value": "<string>",
+                  "description": "Filter the list to promotions on products supplied by providers with the submitted provider codes."
+                },
+                {
+                  "key": "accountNumber",
+                  "value": "<string>",
+                  "description": "Filter the list to promotions on products that are valid for the submitted account number. For phone number based products, the account number should be in international phone number format."
+                }
+              ]
+            },
+            "description": "*Get a list of promotions*\r\n\r\nReturns a list promotions that may apply for the submitted criteria. \r\n\r\nPlease see the documentation section on [querying](#querying).\r\n\r\n#### Localization\r\nPromotions have localized descriptions and you should call `GetPromotionDescriptions` to get the appropriate\r\nlocalizations.  See the section on Localization above.\r\n\r\n#### Validity Period\r\n`ValidityPeriodIso` is expressed in the ISO8601 duration format. EG `P30D` is 30 days."
+          },
+          "response": []
+        },
+        {
+          "name": "GetPromotionDescriptions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/GetPromotionDescriptions?languageCodes=<string>",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "GetPromotionDescriptions"
+              ],
+              "query": [
+                {
+                  "key": "languageCodes",
+                  "value": "<string>",
+                  "description": "Filter the list to promotion descriptions with the submitted language codes."
+                }
+              ]
+            },
+            "description": "*Get localized strings for promotions*\r\n\r\nPlease see the documentation section on [localization](#localization).\r\n\r\nPlease see the documentation section on [querying](#querying).\r\n\r\n#### Dates\r\nIt is not always possible to express when a promotion is available using the `ValidityPeriodIso`.\r\nFor example, a promotion may run for a two week period, but only be applicable on specific dates within that period.\r\n\r\nIn this case the `Dates` property of the localization description will contain a localized string describing the applicable\r\ndates separated by semicolons. Blank means 'ongoing'.  For example - \"07/02/2017;07/03/2017;07/04/2017\"."
+          },
+          "response": []
+        },
+        {
+          "name": "ListTransferRecords",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "Take",
+                  "value": "<integer>",
+                  "description": "(Required) The amount of records to return"
+                },
+                {
+                  "key": "TransferRef",
+                  "value": "<string>",
+                  "description": "Filter by Ding TransferRef"
+                },
+                {
+                  "key": "DistributorRef",
+                  "value": "<string>",
+                  "description": "Filter transfers by DistributorRef."
+                },
+                {
+                  "key": "AccountNumber",
+                  "value": "<string>",
+                  "description": "Filter transfers by AccountNumber"
+                },
+                {
+                  "key": "Skip",
+                  "value": "<integer>",
+                  "description": "The amount of records to by-pass before returning the remaining records"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/ListTransferRecords",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "ListTransferRecords"
+              ]
+            },
+            "description": "*Query transfers that were submitted to the system*\r\n\r\nListTransferRecords gives the ability to search the details of transfers that have been submitted to the system by\r\nthe agent.  Note these transfers must not be older than 2 months.\r\n\r\nPlease see the documentation section on [paging](#paging).\r\n\r\nPlease see the documentation section on [querying](#querying)."
+          },
+          "response": []
+        },
+        {
+          "name": "CancelTransfers",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "TransferId",
+                  "value": "{\"TransferRef\":\"<string>\",\"DistributorRef\":\"<string>\"}"
+                },
+                {
+                  "key": "BatchItemRef",
+                  "value": "<string>"
+                },
+                {
+                  "key": "TransferId",
+                  "value": "{\"TransferRef\":\"<string>\",\"DistributorRef\":\"<string>\"}"
+                },
+                {
+                  "key": "BatchItemRef",
+                  "value": "<string>"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/CancelTransfers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "CancelTransfers"
+              ]
+            },
+            "description": "*Attempt to cancel transfers with the submitted TransferIds*\r\n\r\nThe agent should call `ListTransferRecords` with an appropriate query to \r\nget a list of `TransferIds` that are available to cancel.\r\n\r\nNot all transfers can be cancelled. This method will return the `ProcessingState` of the transfer: if the\r\nstate is \"Cancelled\", then the transfer was successfully cancelled and any appropriate balance compensations\r\nwill have been applied to the agent account. If the state is anything else, then the transfer could not be\r\ncancelled.\r\n\r\nPlease see the documentation section on [batching](#batching)."
+          },
+          "response": []
+        },
+        {
+          "name": "GetAccountLookup",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/GetAccountLookup?accountNumber=<string>",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "GetAccountLookup"
+              ],
+              "query": [
+                {
+                  "key": "accountNumber",
+                  "value": "<string>",
+                  "description": "For phone number based products, the account number should be in international phone number format."
+                }
+              ]
+            },
+            "description": "*Get providers and product information for a specific account number*\r\n\r\nReturns country, provider and region code details for the account number.  This information can be then be used as input parameters\r\nto `GetProducts`.\r\n\r\nPlease note, while `GetProducts` (and `GetProviders`) can also accept an `AccountNumber`, their behaviour when the system cannot match\r\nthe account number to a subset of products or providers is to return the entire list.  This could be a problem for consuming\r\nsystems if the entire list of products or providers is very large.\r\n\r\n`GetAccountLookup` behaves differently - if no matching provider/region information can be found, it will return an empty list. \r\n\r\nIn most cases it will return a single entry, but it is possible to return mulitple items."
+          },
+          "response": []
+        },
+        {
+          "name": "LookupBills",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "SkuCode",
+                  "value": "<string>",
+                  "description": "(Required) Code provided by GetProducts API"
+                },
+                {
+                  "key": "AccountNumber",
+                  "value": "<string>",
+                  "description": "(Required) The account number to target"
+                },
+                {
+                  "key": "Settings",
+                  "value": "{\"Name\":\"<string>\",\"Value\":\"<string>\"}",
+                  "description": "Product specific name/value pairs to be associated with the lookup bills request"
+                },
+                {
+                  "key": "Settings",
+                  "value": "{\"Name\":\"<string>\",\"Value\":\"<string>\"}",
+                  "description": "Product specific name/value pairs to be associated with the lookup bills request"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/LookupBills",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "LookupBills"
+              ]
+            },
+            "description": "*Search available bills*\r\n\r\n`LookupBills` should be called for any product where `LookupBillsRequired` true that will be required for this product when making the `SendTransfer` request, which will pay the Bill."
+          },
+          "response": []
+        },
+        {
+          "name": "GetErrorCodeDescriptions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/V1/GetErrorCodeDescriptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "V1",
+                "GetErrorCodeDescriptions"
+              ]
+            },
+            "description": "*Get a list of error code descriptions*\r\n\r\nEvery API response can contain one or more ErrorCodes that indicate why a request failed. This API can be used to \r\nget a list of human readable errors that correspond to those ErrorCodes. These error messages are aimed at the\r\nagent and are not suitable for display to the end user/customer.\r\n\r\nNote that we will not remove ErrorCodes, but we reserve the right to add new ones.\r\n\r\nPlease see the documentation section on [responses](#responses)."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "value",
+        "value": "{{api_key}}",
+        "type": "string"
+      },
+      {
+        "key": "key",
+        "value": "api_key",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.dingconnect.com"
+    },
+    {
+      "key": "api_key",
+      "value": "your API key"
+    }
+  ]
+}

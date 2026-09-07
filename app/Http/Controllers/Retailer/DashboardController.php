@@ -19,9 +19,9 @@ class DashboardController extends Controller
         $availableBalance = $walletService->getAvailableBalance($wallet);
 
         $stats = [
-            'wallet_balance' => $wallet->balance,
-            'available_balance' => $availableBalance,
-            'locked_balance' => $wallet->balance - $availableBalance,
+            'wallet_balance' => (float) $wallet->balance,
+            'available_balance' => (float) $availableBalance,
+            'locked_balance' => (float) ($wallet->balance - $availableBalance),
 
             'today_transactions' => Transaction::where('user_id', $user->id)->whereDate('created_at', today())->count(),
             'today_success' => Transaction::where('user_id', $user->id)->whereDate('created_at', today())->where('status', 'success')->count(),
@@ -29,7 +29,7 @@ class DashboardController extends Controller
 
             'this_month_transactions' => Transaction::where('user_id', $user->id)->whereMonth('created_at', now()->month)->count(),
             'this_month_success' => Transaction::where('user_id', $user->id)->whereMonth('created_at', now()->month)->where('status', 'success')->count(),
-            'this_month_volume' => Transaction::where('user_id', $user->id)->whereMonth('created_at', now()->month)->where('status', 'success')->sum('amount'),
+            'this_month_volume' => (float) Transaction::where('user_id', $user->id)->whereMonth('created_at', now()->month)->where('status', 'success')->sum('amount'),
 
             'total_transactions' => Transaction::where('user_id', $user->id)->count(),
             'total_success' => Transaction::where('user_id', $user->id)->where('status', 'success')->count(),
@@ -37,24 +37,32 @@ class DashboardController extends Controller
                 ? round((Transaction::where('user_id', $user->id)->where('status', 'success')->count() / Transaction::where('user_id', $user->id)->whereIn('status', ['success', 'failed', 'cancelled'])->count()) * 100, 1)
                 : 0,
 
-            'low_balance' => $availableBalance < config('platform.pricing.low_balance_threshold', 500),
+            'low_balance' => (float) $availableBalance < config('platform.pricing.low_balance_threshold', 500),
         ];
 
-        // Recent transactions
         $recentTransactions = Transaction::where('user_id', $user->id)
             ->with(['operator', 'country'])
             ->latest()
             ->limit(10)
-            ->get();
+            ->get()
+            ->map(function ($txn) {
+                return [
+                    'id' => $txn->id,
+                    'mobile_number' => $txn->mobile_number,
+                    'amount' => (float) $txn->amount,
+                    'status' => $txn->status,
+                    'created_at' => $txn->created_at->diffForHumans(),
+                    'operator' => $txn->operator ? ['name' => $txn->operator->name] : null,
+                ];
+            });
 
-        // Daily chart (last 7 days)
         $chartData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i)->toDateString();
             $chartData[] = [
                 'date' => $date,
                 'count' => Transaction::where('user_id', $user->id)->whereDate('created_at', $date)->count(),
-                'amount' => Transaction::where('user_id', $user->id)->whereDate('created_at', $date)->where('status', 'success')->sum('amount'),
+                'amount' => (float) Transaction::where('user_id', $user->id)->whereDate('created_at', $date)->where('status', 'success')->sum('amount'),
             ];
         }
 

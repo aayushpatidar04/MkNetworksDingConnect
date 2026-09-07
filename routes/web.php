@@ -101,7 +101,8 @@ Route::prefix('retailer')->name('retailer.')->middleware(['auth', 'retailer'])->
     Route::post('/recharge', [RechargeController::class, 'initiate'])->name('recharge.initiate');
     Route::get('/recharge/operators', [RechargeController::class, 'getOperators'])->name('recharge.operators');
     Route::get('/recharge/pricing', [RechargeController::class, 'getPricing'])->name('recharge.pricing');
-
+    Route::get('/recharge/products', [RechargeController::class, 'getProducts'])->name('recharge.products');
+    
     // Transactions
     Route::get('/transactions', [RetailerTransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/{transaction}', [RetailerTransactionController::class, 'show'])->name('transactions.show');

@@ -104,15 +104,7 @@ function logout() {
                             href="/retailer"
                             class="flex items-center ml-2 sm:ml-0"
                         >
-                            <MkLogo size="sm" />
-                            <div class="ml-3 hidden sm:block">
-                                <div class="text-sm font-bold text-white">
-                                    MK Network
-                                </div>
-                                <div class="text-xs text-dark-400">
-                                    Retailer Portal
-                                </div>
-                            </div>
+                            <MkLogo size="xl" />
                         </Link>
                     </div>
 

@@ -137,6 +137,36 @@ class DingConnectService
     }
 
     /**
+     * GetProducts - Fetch plans/products for a provider
+     * GET /api/V1/GetProducts?countryIsos={iso}&providerCodes={code}
+     */
+    public function getProducts(string $countryIso, string $providerCode): array
+    {
+        $params = [
+            'countryIsos' => $countryIso,
+            'providerCodes' => $providerCode,
+        ];
+        return $this->get('/api/V1/GetProducts', $params);
+    }
+
+    /**
+     * GetProductDescriptions - Fetch localized descriptions for products
+     * GET /api/V1/GetProductDescriptions?languageCodes=en&skuCodes={codes}
+     */
+    public function getProductDescriptions(array $skuCodes, ?string $languageCode = 'en'): array
+    {
+        if (empty($skuCodes)) {
+            return ['success' => true, 'data' => []];
+        }
+
+        $params = [
+            'languageCodes' => $languageCode,
+            'skuCodes' => implode(',', array_slice($skuCodes, 0, 50)), // Max 50 per request
+        ];
+        return $this->get('/api/V1/GetProductDescriptions', $params);
+    }
+
+    /**
      * Balance - Check account balance
      * GET /api/V1/Balance
      */
