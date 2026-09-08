@@ -255,7 +255,7 @@ class DingConnectService
 
     public function processCallback(array $payload): Transaction
     {
-        $dingTransactionId = $payload['TransferID'] ?? $payload['TransferId'] ?? null;
+        $dingTransactionId = $payload['TransferID']['TransferRef'] ?? null;
 
         if (!$dingTransactionId) {
             throw new \InvalidArgumentException('Missing TransferID in callback');

@@ -25,7 +25,14 @@ const form = useForm({
     mobile_number: "",
     operator_id: "",
     country_id: "",
-    amount: 0,
+    sku_code: "",
+    send_value: 0,
+    receive_value: 0,
+    send_currency: "GBP",
+    receive_currency: "GBP",
+    display_text: "",
+    validity_period: "",
+    benefits: [],
 });
 
 const canProceedToProvider = computed(() => !!selectedCountry.value);
@@ -92,7 +99,14 @@ function selectOperator(operator) {
 
 function selectProduct(product) {
     selectedProduct.value = product;
-    form.amount = product.receive_value;
+    form.sku_code = product.sku_code;
+    form.send_value = product.send_value;
+    form.receive_value = product.receive_value;
+    form.send_currency = product.send_currency;
+    form.receive_currency = product.receive_currency;
+    form.display_text = product.display_text;
+    form.validity_period = product.validity_period;
+    form.benefits = product.benefits;
     currentStep.value = 4;
 }
 
@@ -146,6 +160,14 @@ function submitRecharge() {
     form.mobile_number = mobileNumber.value.replace(/\D/g, "");
     form.operator_id = selectedOperator.value.id;
     form.country_id = selectedCountry.value.id;
+    form.sku_code = selectedProduct.value.sku_code;
+    form.send_value = selectedProduct.value.send_value;
+    form.receive_value = selectedProduct.value.receive_value;
+    form.send_currency = selectedProduct.value.send_currency;
+    form.receive_currency = selectedProduct.value.receive_currency;
+    form.display_text = selectedProduct.value.display_text;
+    form.validity_period = selectedProduct.value.validity_period;
+    form.benefits = JSON.stringify(selectedProduct.value.benefits || []);
 
     form.post("/retailer/recharge", {
         onSuccess: () => {},
@@ -462,7 +484,7 @@ function submitRecharge() {
                         >
                         <span class="font-semibold text-primary-light"
                             >{{ product.send_currency }}
-                            {{ product.send_value.toFixed(2) }}</span
+                            {{ (product.send_value || 0).toFixed(2) }}</span
                         >
                     </div>
                 </button>
@@ -576,7 +598,9 @@ function submitRecharge() {
                         <span class="text-white">Total charge:</span>
                         <span class="text-primary-light"
                             >{{ selectedProduct?.send_currency }}
-                            {{ selectedProduct?.send_value.toFixed(2) }}</span
+                            {{
+                                (selectedProduct?.send_value || 0).toFixed(2)
+                            }}</span
                         >
                     </div>
                     <div

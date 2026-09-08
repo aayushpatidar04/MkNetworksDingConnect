@@ -25,12 +25,22 @@ class Transaction extends Model
         'callback_received_at',
         'ip_address',
         'user_agent',
+        'sku_code',
+        'send_value',
+        'receive_value',
+        'send_currency',
+        'receive_currency',
+        'display_text',
+        'validity_period',
+        'benefits',
     ];
 
     protected $casts = [
         'ding_response' => 'array',
         'callback_received' => 'boolean',
         'amount' => 'decimal:2',
+        'send_value' => 'decimal:2',
+        'receive_value' => 'decimal:2',
         'callback_received_at' => 'datetime',
     ];
 
