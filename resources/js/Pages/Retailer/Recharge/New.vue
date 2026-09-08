@@ -136,7 +136,7 @@ function submitRecharge() {
         return;
     }
 
-    if (props.availableBalance < form.amount) {
+    if (props.availableBalance < form.send_value) {
         errorMessage.value =
             "Insufficient wallet balance. Please top up first.";
         return;
@@ -173,7 +173,7 @@ function submitRecharge() {
 
         <!-- Wallet Balance Alert -->
         <div
-            v-if="availableBalance < 100"
+            v-if="availableBalance < 10"
             class="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 mb-6 flex items-start"
         >
             <svg

@@ -29,9 +29,10 @@ class DingConnectService
         $this->customerId = config('platform.dingconnect.customer_id') ?? '';
     }
 
-    /**
-     * Helper: make a GET request with api_key header
-     */
+    // =========================================================================
+    // HTTP HELPERS
+    // =========================================================================
+
     protected function get(string $endpoint, array $params = []): array
     {
         try {
@@ -43,14 +44,12 @@ class DingConnectService
             Log::info('DingConnect GET', ['url' => $url]);
 
             $response = Http::timeout(30)
-                ->withHeaders([
-                    'api_key' => $this->apiKey,
-                ])
+                ->withHeaders(['api_key' => $this->apiKey])
                 ->get($url);
 
             Log::info('DingConnect GET response', [
                 'status' => $response->status(),
-                'body' => substr($response->body(), 0, 300),
+                'body' => substr($response->body(), 0, 500),
             ]);
 
             if ($response->successful()) {
@@ -69,26 +68,21 @@ class DingConnectService
         }
     }
 
-    /**
-     * Helper: make a POST request with api_key header
-     */
-    protected function post(string $endpoint, array $data = []): array
+    protected function postForm(string $endpoint, array $formData = []): array
     {
         try {
             $url = $this->baseUrl . $endpoint;
 
-            Log::info('DingConnect POST', ['url' => $url, 'data' => $data]);
+            Log::info('DingConnect POST form', ['url' => $url, 'data' => $formData]);
 
-            $response = Http::timeout(30)
-                ->withHeaders([
-                    'api_key' => $this->apiKey,
-                    'Content-Type' => 'application/json',
-                ])
-                ->post($url, $data);
+            $response = Http::timeout(90)
+                ->withHeaders(['api_key' => $this->apiKey])
+                ->asForm()
+                ->post($url, $formData);
 
-            Log::info('DingConnect POST response', [
+            Log::info('DingConnect POST form response', [
                 'status' => $response->status(),
-                'body' => substr($response->body(), 0, 300),
+                'body' => substr($response->body(), 0, 500),
             ]);
 
             if ($response->successful()) {
@@ -111,98 +105,143 @@ class DingConnectService
     // PUBLIC API METHODS
     // =========================================================================
 
-    /**
-     * GetCountries - Fetch all countries from DingConnect
-     * GET /api/V1/GetCountries
-     */
     public function getCountries(): array
     {
         return $this->get('/api/V1/GetCountries');
     }
 
-    /**
-     * GetProviders - Fetch operators/providers for a country
-     * GET /api/V1/GetProviders?countryIsos={iso}
-     */
     public function getProviders(?string $countryIso = null, ?string $providerCodes = null): array
     {
         $params = [];
-        if ($countryIso) {
+        if ($countryIso)
             $params['countryIsos'] = $countryIso;
-        }
-        if ($providerCodes) {
+        if ($providerCodes)
             $params['providerCodes'] = $providerCodes;
-        }
         return $this->get('/api/V1/GetProviders', $params);
     }
 
-    /**
-     * GetProducts - Fetch plans/products for a provider
-     * GET /api/V1/GetProducts?countryIsos={iso}&providerCodes={code}
-     */
     public function getProducts(string $countryIso, string $providerCode): array
     {
-        $params = [
+        return $this->get('/api/V1/GetProducts', [
             'countryIsos' => $countryIso,
             'providerCodes' => $providerCode,
-        ];
-        return $this->get('/api/V1/GetProducts', $params);
+        ]);
     }
 
-    /**
-     * GetProductDescriptions - Fetch localized descriptions for products
-     * GET /api/V1/GetProductDescriptions?languageCodes=en&skuCodes={codes}
-     */
+    public function getProviderStatus(?string $providerCodes = null): array
+    {
+        $params = [];
+        if ($providerCodes)
+            $params['providerCodes'] = $providerCodes;
+        return $this->get('/api/V1/GetProviderStatus', $params);
+    }
+
     public function getProductDescriptions(array $skuCodes, ?string $languageCode = 'en'): array
     {
-        if (empty($skuCodes)) {
+        if (empty($skuCodes))
             return ['success' => true, 'data' => []];
-        }
-
-        $params = [
+        return $this->get('/api/V1/GetProductDescriptions', [
             'languageCodes' => $languageCode,
-            'skuCodes' => implode(',', array_slice($skuCodes, 0, 50)), // Max 50 per request
-        ];
-        return $this->get('/api/V1/GetProductDescriptions', $params);
+            'skuCodes' => implode(',', array_slice($skuCodes, 0, 50)),
+        ]);
     }
 
-    /**
-     * Balance - Check account balance
-     * GET /api/V1/Balance
-     */
     public function getBalance(): array
     {
-        return $this->get('/api/V1/Balance');
+        return $this->get('/api/V1/GetBalance');
+    }
+
+    public function getPromotions(?string $countryIsos = null, ?string $providerCodes = null): array
+    {
+        $params = [];
+        if ($countryIsos)
+            $params['countryIsos'] = $countryIsos;
+        if ($providerCodes)
+            $params['providerCodes'] = $providerCodes;
+        return $this->get('/api/V1/GetPromotions', $params);
+    }
+
+    public function getAccountLookup(string $accountNumber): array
+    {
+        return $this->get('/api/V1/GetAccountLookup', [
+            'accountNumber' => $accountNumber,
+        ]);
+    }
+
+    public function estimatePrices(string $skuCode, float $sendValue, ?string $sendCurrencyIso = null, ?float $receiveValue = null): array
+    {
+        $data = [
+            'SkuCode' => $skuCode,
+            'SendValue' => $sendValue,
+        ];
+        if ($sendCurrencyIso)
+            $data['SendCurrencyIso'] = $sendCurrencyIso;
+        if ($receiveValue)
+            $data['ReceiveValue'] = $receiveValue;
+        return $this->postForm('/api/V1/EstimatePrices', $data);
     }
 
     /**
-     * Transfer - Send a top-up / recharge
-     * POST /api/V1/Transfer
+     * SendTransfer - Send a top-up / recharge
+     * POST /api/V1/SendTransfer (form-urlencoded)
+     *
+     * Required: SkuCode, SendValue, AccountNumber, DistributorRef, ValidateOnly
      */
-    public function sendTopUp(string $mobileNumber, string $operatorId, string $countryCode, float $amount): array
+    public function sendTransfer(string $skuCode, float $sendValue, string $accountNumber, string $distributorRef, bool $validateOnly = false, ?string $sendCurrencyIso = null, ?array $settings = null): array
     {
         $payload = [
-            'MobileNumber' => $mobileNumber,
-            'OperatorID' => $operatorId,
-            'CountryCode' => $countryCode,
-            'Amount' => $amount,
-            'Currency' => config('platform.wallet.currency', 'GBP'),
+            'SkuCode' => $skuCode,
+            'SendValue' => number_format($sendValue, 2, '.', ''),
+            'AccountNumber' => $accountNumber,
+            'DistributorRef' => $distributorRef,
+            'ValidateOnly' => $validateOnly ? 'true' : 'false',
         ];
 
-        if ($this->customerId) {
-            $payload['CustomerId'] = $this->customerId;
+        if ($sendCurrencyIso) {
+            $payload['SendCurrencyIso'] = $sendCurrencyIso;
         }
 
-        $callbackUrl = config('platform.dingconnect.callback_url');
-        if ($callbackUrl) {
-            $payload['CallBackURL'] = $callbackUrl;
+        if ($settings && count($settings) > 0) {
+            $payload['Settings'] = json_encode($settings);
         }
 
-        return $this->post('/api/V1/Transfer', $payload);
+        return $this->postForm('/api/V1/SendTransfer', $payload);
     }
 
     /**
-     * Check transaction status
+     * ListTransferRecords - Query transfer status
+     * POST /api/V1/ListTransferRecords (form-urlencoded)
+     */
+    public function listTransferRecords(?string $transferRef = null, ?string $distributorRef = null, ?string $accountNumber = null, int $take = 10, int $skip = 0): array
+    {
+        $payload = [
+            'Take' => $take,
+            'Skip' => $skip,
+        ];
+        if ($transferRef)
+            $payload['TransferRef'] = $transferRef;
+        if ($distributorRef)
+            $payload['DistributorRef'] = $distributorRef;
+        if ($accountNumber)
+            $payload['AccountNumber'] = $accountNumber;
+
+        return $this->postForm('/api/V1/ListTransferRecords', $payload);
+    }
+
+    /**
+     * CancelTransfers - Cancel a transfer
+     * POST /api/V1/CancelTransfers (form-urlencoded)
+     */
+    public function cancelTransfers(string $transferRef, string $distributorRef): array
+    {
+        $payload = [
+            'TransferId' => json_encode(['TransferRef' => $transferRef, 'DistributorRef' => $distributorRef]),
+        ];
+        return $this->postForm('/api/V1/CancelTransfers', $payload);
+    }
+
+    /**
+     * Check transaction status (legacy - use listTransferRecords instead)
      * GET /api/V1/Transfer/{id}
      */
     public function checkStatus(string $dingTransactionId): array
@@ -214,9 +253,6 @@ class DingConnectService
     // CALLBACK PROCESSING
     // =========================================================================
 
-    /**
-     * Process incoming webhook callback from DingConnect
-     */
     public function processCallback(array $payload): Transaction
     {
         $dingTransactionId = $payload['TransferID'] ?? $payload['TransferId'] ?? null;
@@ -242,7 +278,6 @@ class DingConnectService
         ]);
 
         $status = $payload['Status'] ?? 'Unknown';
-
         $statusMap = [
             'Successful' => 'success',
             'Success' => 'success',
@@ -254,11 +289,13 @@ class DingConnectService
 
         $newStatus = $statusMap[$status] ?? 'failed';
 
-        match ($newStatus) {
-            'success' => $this->handleSuccess($transaction, $payload),
-            'failed' => $this->handleFailure($transaction, $payload),
-            default => $transaction->update(['status' => 'processing']),
-        };
+        if ($newStatus === 'success') {
+            $this->handleSuccess($transaction, $payload);
+        } elseif ($newStatus === 'failed') {
+            $this->handleFailure($transaction, $payload);
+        } else {
+            $transaction->update(['status' => 'processing']);
+        }
 
         $transaction->update([
             'status' => $newStatus,
@@ -281,17 +318,17 @@ class DingConnectService
                 ->first();
 
             if ($holdLedger) {
-                $wallet->increment('balance', $transaction->retailer_charged);
+                $wallet->increment('balance', $transaction->send_value);
                 $wallet->refresh();
 
-                $wallet->decrement('balance', $transaction->retailer_charged);
+                $wallet->decrement('balance', $transaction->send_value);
                 $wallet->refresh();
 
                 WalletLedger::create([
                     'wallet_id' => $wallet->id,
                     'transaction_id' => $transaction->id,
                     'type' => 'debit',
-                    'amount' => $transaction->retailer_charged,
+                    'amount' => $transaction->send_value,
                     'balance_before' => $holdLedger->balance_after,
                     'balance_after' => $wallet->balance,
                     'reference_type' => 'recharge',
@@ -316,13 +353,13 @@ class DingConnectService
                 ->first();
 
             if ($holdLedger) {
-                $wallet->increment('balance', $transaction->retailer_charged);
+                $wallet->increment('balance', $transaction->send_value);
 
                 WalletLedger::create([
                     'wallet_id' => $wallet->id,
                     'transaction_id' => $transaction->id,
                     'type' => 'refund',
-                    'amount' => $transaction->retailer_charged,
+                    'amount' => $transaction->send_value,
                     'balance_before' => $holdLedger->balance_after,
                     'balance_after' => $wallet->balance,
                     'reference_type' => 'recharge',
@@ -340,15 +377,11 @@ class DingConnectService
         });
     }
 
-    /**
-     * Helper: Convert ISO country code to flag emoji
-     */
     private function getFlagEmoji(string $isoCode): string
     {
         $offset = ord('A');
         $emoji = '';
-        $chars = str_split($isoCode);
-        foreach ($chars as $char) {
+        foreach (str_split($isoCode) as $char) {
             $emoji .= mb_chr(ord($char) - $offset + 0x1F1E6);
         }
         return $emoji;

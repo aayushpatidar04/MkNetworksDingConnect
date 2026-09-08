@@ -42,7 +42,7 @@ class TransactionController extends Controller
     public function show(Transaction $transaction)
     {
         $this->authorize('view', $transaction);
-        $transaction->load(['operator', 'country', 'callbacks']);
+        $transaction->load(['operator', 'country']);
 
         return Inertia::render('Retailer/Transactions/Show', compact('transaction'));
     }
