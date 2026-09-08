@@ -68,14 +68,11 @@ class ProcessRechargeJob implements ShouldQueue
             $transferRef = $transferId['TransferRef'] ?? null;
             $distributorRef = $transferId['DistributorRef'] ?? $record['DistributorRef'] ?? null;
             $processingState = $record['ProcessingState'] ?? '';
-            $receiptNumber = $record['ReceiptNumber'] ?? null;
-            $receiptText = $record['ReceiptText'] ?? null;
 
             $this->transaction->update([
                 'ding_transaction_id' => $transferRef,
                 'ding_order_reference' => $distributorRef,
                 'ding_response' => $record,
-                'receipt_number' => $receiptNumber,
             ]);
 
             // Check if it was instant or batch

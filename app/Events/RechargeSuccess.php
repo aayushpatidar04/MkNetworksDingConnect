@@ -15,7 +15,7 @@ class RechargeSuccess implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public Transaction $transaction;
-    public string $receiptNumber;
+    public ?string $receiptNumber;
 
     public function __construct(Transaction $transaction, ?string $receiptNumber = null)
     {

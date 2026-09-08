@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Events\RechargeSuccess;
 use App\Events\RechargeFailed;
+use Exception;
 
 class DingConnectService
 {
@@ -97,6 +98,36 @@ class DingConnectService
 
         } catch (\Exception $e) {
             Log::error('DingConnect POST Error: ' . $e->getMessage());
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    protected function postJson(string $endpoint, array $jsonData = []): array
+    {
+        try {
+            $url = $this->baseUrl . $endpoint;
+
+            Log::info('DingConnect POST json', ['url' => $url, 'data' => $jsonData]);
+
+            $response = Http::timeout(90)
+                ->withHeaders(['api_key' => $this->apiKey])
+                ->withHeader('Content-Type', 'application/json')
+                ->post($url, $jsonData);
+
+            Log::info('DingConnect POST json response', ['status' => $response->status(), 'body' => substr($response->body(), 0, 500),]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                if (($data['ResultCode'] ?? 0) == 1) {
+                    return ['success' => true, 'data' => $data];
+                }
+                return ['success' => false, 'error' => $data['ErrorCodes'][0] ?? $data['Message'] ?? 'API error', 'raw' => $data];
+            }
+
+            return ['success' => false, 'error' => 'HTTP ' . $response->status(), 'body' => substr($response->body(), 0, 200)];
+
+        } catch (Exception $e) {
+            Log::error('DingConnect POST JSON Error: ' . $e->getMessage());
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -191,7 +222,7 @@ class DingConnectService
     {
         $payload = [
             'SkuCode' => $skuCode,
-            'SendValue' => number_format($sendValue, 2, '.', ''),
+            'SendValue' => (float) $sendValue,
             'AccountNumber' => $accountNumber,
             'DistributorRef' => $distributorRef,
             'ValidateOnly' => $validateOnly ? 'true' : 'false',
@@ -202,10 +233,10 @@ class DingConnectService
         }
 
         if ($settings && count($settings) > 0) {
-            $payload['Settings'] = json_encode($settings);
+            $payload['Settings'] = $settings;
         }
 
-        return $this->postForm('/api/V1/SendTransfer', $payload);
+        return $this->postJson('/api/V1/SendTransfer', $payload);
     }
 
     /**
@@ -255,7 +286,7 @@ class DingConnectService
 
     public function processCallback(array $payload): Transaction
     {
-        $dingTransactionId = $payload['TransferID']['TransferRef'] ?? null;
+        $dingTransactionId = $payload['TransferId']['TransferRef'] ?? null;
 
         if (!$dingTransactionId) {
             throw new \InvalidArgumentException('Missing TransferID in callback');
