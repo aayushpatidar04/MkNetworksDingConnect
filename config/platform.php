@@ -18,6 +18,7 @@ return [
         'min_recharge' => env('PLATFORM_MIN_RECHARGE', 1),
         'max_recharge' => env('PLATFORM_MAX_RECHARGE', 10000),
         'markup' => env('PLATFORM_MARKUP', 0),
+        'low_balance_threshold' => 10,
     ],
 
     'wallet' => [

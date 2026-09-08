@@ -37,7 +37,7 @@ class DashboardController extends Controller
                 ? round((Transaction::where('user_id', $user->id)->where('status', 'success')->count() / Transaction::where('user_id', $user->id)->whereIn('status', ['success', 'failed', 'cancelled'])->count()) * 100, 1)
                 : 0,
 
-            'low_balance' => (float) $availableBalance < config('platform.pricing.low_balance_threshold', 500),
+            'low_balance' => (float) $availableBalance < config('platform.pricing.low_balance_threshold', 10),
         ];
 
         $recentTransactions = Transaction::where('user_id', $user->id)

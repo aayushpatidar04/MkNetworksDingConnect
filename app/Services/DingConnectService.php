@@ -349,10 +349,6 @@ class DingConnectService
                 ->first();
 
             if ($holdLedger) {
-                $wallet->increment('balance', $transaction->send_value);
-                $wallet->refresh();
-
-                $wallet->decrement('balance', $transaction->send_value);
                 $wallet->refresh();
 
                 WalletLedger::create([
@@ -360,13 +356,15 @@ class DingConnectService
                     'transaction_id' => $transaction->id,
                     'type' => 'debit',
                     'amount' => $transaction->send_value,
-                    'balance_before' => $holdLedger->balance_after,
+                    'balance_before' => $holdLedger->balance_before,
                     'balance_after' => $wallet->balance,
                     'reference_type' => 'recharge',
                     'reference_id' => $transaction->id,
                     'description' => "Recharge successful - {$transaction->mobile_number}",
                     'created_at' => now(),
                 ]);
+
+                $holdLedger->delete();
             }
 
             event(new RechargeSuccess($transaction));
@@ -391,13 +389,15 @@ class DingConnectService
                     'transaction_id' => $transaction->id,
                     'type' => 'refund',
                     'amount' => $transaction->send_value,
-                    'balance_before' => $holdLedger->balance_after,
+                    'balance_before' => $holdLedger->balance_before,
                     'balance_after' => $wallet->balance,
                     'reference_type' => 'recharge',
                     'reference_id' => $transaction->id,
                     'description' => "Recharge failed - amount refunded - {$transaction->mobile_number}",
                     'created_at' => now(),
                 ]);
+
+                $holdLedger->delete();
             }
 
             $transaction->update([
