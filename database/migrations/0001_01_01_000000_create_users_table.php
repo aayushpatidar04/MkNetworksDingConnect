@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->string('iso_code_3', 3);
             $table->string('ding_country_id')->nullable();
             $table->string('calling_code');
-            $table->string('currency', 3)->default('INR');
+            $table->string('currency', 3)->default('GBP');
             $table->string('flag_emoji')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
@@ -78,7 +78,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->decimal('balance', 12, 2)->default(0.00);
-            $table->string('currency', 3)->default('INR');
+            $table->string('currency', 3)->default('GBP');
             $table->boolean('is_locked')->default(false);
             $table->text('lock_reason')->nullable();
             $table->timestamps();
@@ -113,7 +113,7 @@ return new class extends Migration {
             $table->foreignId('operator_id')->constrained();
             $table->foreignId('country_id')->constrained('countries');
             $table->decimal('amount', 10, 2);
-            $table->string('currency', 3)->default('INR');
+            $table->string('currency', 3)->default('GBP');
 
             // Pricing breakdown
             $table->decimal('ding_cost', 10, 2);
@@ -174,7 +174,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('user_id')->constrained();
             $table->decimal('amount', 12, 2);
-            $table->string('currency', 3)->default('INR');
+            $table->string('currency', 3)->default('GBP');
             $table->decimal('fee_amount', 10, 2)->default(0);
             $table->decimal('fee_percentage', 5, 4)->default(0);
             $table->decimal('total_charged', 12, 2);
@@ -211,7 +211,7 @@ return new class extends Migration {
             $table->decimal('ding_cost', 10, 2);
             $table->decimal('retailer_charged', 10, 2);
             $table->decimal('commission_amount', 10, 2);
-            $table->string('currency', 3)->default('INR');
+            $table->string('currency', 3)->default('GBP');
             $table->boolean('is_settled')->default(false);
             $table->timestamp('settled_at')->nullable();
             $table->timestamp('created_at');

@@ -17,7 +17,7 @@ return new class extends Migration {
     {
         Schema::table('countries', function (Blueprint $table) {
             $table->string('calling_code')->nullable(false)->change();
-            $table->string('currency', 3)->default('INR')->nullable(false)->change();
+            $table->string('currency', 3)->default('GBP')->nullable(false)->change();
         });
     }
 };

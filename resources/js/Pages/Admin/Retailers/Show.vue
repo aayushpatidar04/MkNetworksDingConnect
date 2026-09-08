@@ -77,7 +77,9 @@ const creditForm = useForm({ amount: "", description: "" });
                             </p>
                         </div>
                         <div>
-                            <span class="text-dark-400">Company Registration Number:</span>
+                            <span class="text-dark-400"
+                                >Company Registration Number:</span
+                            >
                             <p class="font-medium text-white">
                                 {{ retailer.company_reg_number || "-" }}
                             </p>

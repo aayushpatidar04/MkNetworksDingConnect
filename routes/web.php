@@ -92,6 +92,7 @@ Route::prefix('retailer')->name('retailer.')->middleware(['auth', 'retailer'])->
 
     // Wallet
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
+    Route::get('/wallet/topup/new', [WalletController::class, 'topUpPage'])->name('wallet.topup.new');
     Route::post('/wallet/topup', [WalletController::class, 'initiateTopUp'])->name('wallet.topup');
     Route::post('/wallet/verify', [WalletController::class, 'verifyPayment'])->name('wallet.verify');
     Route::get('/wallet/ledger', [WalletController::class, 'ledger'])->name('wallet.ledger');

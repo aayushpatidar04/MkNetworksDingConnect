@@ -22,7 +22,7 @@ class PaymentService
     /**
      * Create a payment order for wallet top-up
      */
-    public function createOrder(float $amount, string $currency = 'INR', ?int $userId = null): array
+    public function createOrder(float $amount, string $currency = 'GBP', ?int $userId = null): array
     {
         try {
             $order = $this->razorpay->order->create([
@@ -54,6 +54,7 @@ class PaymentService
             $attributes = [
                 'razorpay_order_id' => $data['razorpay_order_id'],
                 'razorpay_payment_id' => $data['razorpay_payment_id'],
+                'razorpay_signature' => $data['razorpay_signature'],
             ];
 
             $this->razorpay->utility->verifyPaymentSignature($attributes);
@@ -96,7 +97,7 @@ class PaymentService
 
             $order = $this->razorpay->order->create([
                 'amount' => (int) ($amount * 100),
-                'currency' => 'INR',
+                'currency' => 'GBP',
                 'receipt' => 'upi_' . time(),
                 'payment_capture' => 1,
             ]);

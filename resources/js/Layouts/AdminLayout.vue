@@ -49,7 +49,7 @@ onUnmounted(() => {
                 >
                     <Link href="/admin" class="flex items-center">
                         <MkLogo v-if="showMobileMenu" size="xl" />
-                        <img v-else :src="'/favicon.png'" class="h-12 w-auto">
+                        <img v-else :src="'/favicon.png'" class="h-12 w-auto" />
                     </Link>
                 </div>
 

@@ -41,7 +41,7 @@ const props = defineProps({
                     </div>
                 </div>
                 <Link
-                    href="/retailer/wallet/topup"
+                    href="/retailer/wallet/topup/new"
                     class="btn-primary px-6 py-3 bg-primary text-white rounded-xl font-medium"
                     >Top Up</Link
                 >
