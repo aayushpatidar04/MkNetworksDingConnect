@@ -38,7 +38,7 @@ class RechargeFailed implements ShouldBroadcast
             'mobile_number' => $this->transaction->mobile_number,
             'amount' => $this->transaction->amount,
             'reason' => $this->transaction->failure_reason,
-            'message' => "Recharge of Rs. {$this->transaction->amount} for {$this->transaction->mobile_number} failed. Amount refunded.",
+            'message' => "Recharge of £ {$this->transaction->amount} for {$this->transaction->mobile_number} failed. Amount refunded.",
         ];
     }
 }

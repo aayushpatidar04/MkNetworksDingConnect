@@ -148,7 +148,7 @@ class RetailerController extends Controller
         $wallet = $walletService->getWallet($retailer);
         $walletService->credit($wallet, $request->amount, 'admin_credit', null, $request->description ?? 'Manual credit by admin');
 
-        return back()->with('success', "Rs. {$request->amount} credited to {$retailer->name}'s wallet!");
+        return back()->with('success', "£ {$request->amount} credited to {$retailer->name}'s wallet!");
     }
 
     public function processKyc(Request $request, User $retailer)

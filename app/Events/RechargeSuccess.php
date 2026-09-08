@@ -41,7 +41,7 @@ class RechargeSuccess implements ShouldBroadcast
             'mobile_number' => $this->transaction->mobile_number,
             'amount' => $this->transaction->amount,
             'status' => 'success',
-            'message' => "Recharge of Rs. {$this->transaction->amount} for {$this->transaction->mobile_number} was successful!",
+            'message' => "Recharge of £ {$this->transaction->amount} for {$this->transaction->mobile_number} was successful!",
         ];
     }
 }

@@ -10,7 +10,6 @@ const props = defineProps({
     countries: Array,
 });
 
-// Step management: 1=Country, 2=Provider, 3=Plan, 4=Number+Confirm
 const currentStep = ref(1);
 const selectedCountry = ref(null);
 const operators = ref([]);
@@ -39,8 +38,45 @@ const canProceedToConfirm = computed(() => {
 });
 
 const totalSteps = 4;
-
 const stepNames = ["Country", "Operator", "Plan", "Confirm"];
+
+function parseValidityPeriod(iso) {
+    if (!iso || iso.trim() === "") return null;
+
+    const match = iso.match(
+        /P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?/,
+    );
+    if (!match) return null;
+
+    const years = parseInt(match[1] || "0");
+    const months = parseInt(match[2] || "0");
+    const weeks = parseInt(match[3] || "0");
+    const days = parseInt(match[4] || "0");
+    const hours = parseInt(match[5] || "0");
+
+    const parts = [];
+    if (years > 0) parts.push(years + (years === 1 ? " year" : " years"));
+    if (months > 0) parts.push(months + (months === 1 ? " month" : " months"));
+    if (weeks > 0) parts.push(weeks + (weeks === 1 ? " week" : " weeks"));
+    if (days > 0) parts.push(days + (days === 1 ? " day" : " days"));
+    if (hours > 0) parts.push(hours + (hours === 1 ? " hour" : " hours"));
+
+    if (parts.length === 0) return null;
+
+    const totalDays = years * 365 + months * 30 + weeks * 7 + days;
+    if (totalDays >= 7 && hours === 0) {
+        return "Expires in " + totalDays + " days";
+    }
+
+    return "Expires in " + parts.join(", ");
+}
+
+function formatValidity(iso) {
+    const result = parseValidityPeriod(iso);
+    if (result) return result;
+    if (iso && iso.trim() !== "") return iso;
+    return null;
+}
 
 function selectCountry(country) {
     selectedCountry.value = country;
@@ -112,9 +148,7 @@ function submitRecharge() {
     form.country_id = selectedCountry.value.id;
 
     form.post("/retailer/recharge", {
-        onSuccess: () => {
-            // Will redirect to transaction page
-        },
+        onSuccess: () => {},
         onError: (errors) => {
             errorMessage.value = Object.values(errors)[0] || "Recharge failed";
             submitting.value = false;
@@ -317,9 +351,7 @@ function submitRecharge() {
                         />
                         <span v-else class="text-2xl">📱</span>
                     </div>
-                    <div
-                        class="font-medium text-white text-sm group-hover:text-primary-light transition"
-                    >
+                    <div class="font-semibold text-white text-sm">
                         {{ op.name }}
                     </div>
                 </button>
@@ -408,9 +440,9 @@ function submitRecharge() {
                         </div>
                         <span
                             v-if="product.validity_period"
-                            class="text-xs bg-primary/20 text-primary-light px-2 py-1 rounded"
+                            class="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded"
                         >
-                            {{ product.validity_period }}
+                            {{ formatValidity(product.validity_period) }}
                         </span>
                     </div>
                     <div class="flex flex-wrap gap-2 mt-3">
@@ -552,7 +584,7 @@ function submitRecharge() {
                     >
                         <span>Wallet balance:</span>
                         <span
-                            >Available: Rs.
+                            >Available: £
                             {{ Number(availableBalance || 0).toFixed(2) }}</span
                         >
                     </div>

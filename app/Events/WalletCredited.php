@@ -40,7 +40,7 @@ class WalletCredited implements ShouldBroadcast
         return [
             'amount' => $this->amount,
             'new_balance' => $this->newBalance,
-            'message' => "Your wallet has been credited with Rs. {$this->amount}. New balance: Rs. {$this->newBalance}",
+            'message' => "Your wallet has been credited with £ {$this->amount}. New balance: £ {$this->newBalance}",
         ];
     }
 }

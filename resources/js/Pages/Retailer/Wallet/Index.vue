@@ -22,13 +22,13 @@ const props = defineProps({
             <div class="stat-gradient-1 rounded-2xl p-6 card-hover">
                 <div class="text-sm text-blue-100">Wallet Balance</div>
                 <div class="text-3xl font-bold text-white mt-1">
-                    Rs. {{ Number(wallet.balance).toFixed(2) }}
+                    £ {{ Number(wallet.balance).toFixed(2) }}
                 </div>
             </div>
             <div class="stat-gradient-2 rounded-2xl p-6 card-hover">
                 <div class="text-sm text-green-100">Available Balance</div>
                 <div class="text-3xl font-bold text-white mt-1">
-                    Rs. {{ Number(availableBalance).toFixed(2) }}
+                    £ {{ Number(availableBalance).toFixed(2) }}
                 </div>
             </div>
             <div
@@ -63,7 +63,7 @@ const props = defineProps({
                 >
                     <div>
                         <div class="font-medium text-white">
-                            Rs. {{ Number(topup.amount).toFixed(2) }}
+                            £ {{ Number(topup.amount).toFixed(2) }}
                         </div>
                         <div class="text-sm text-dark-400">
                             {{ topup.payment_method }} · {{ topup.created_at }}

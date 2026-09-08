@@ -45,7 +45,7 @@ const props = defineProps({
                         Low Wallet Balance
                     </h3>
                     <p class="text-sm text-red-300 mt-1">
-                        Your available balance (Rs.
+                        Your available balance (£
                         {{ stats.available_balance.toFixed(2) }}) is below the
                         minimum threshold. Please top up to continue recharging.
                     </p>
@@ -63,10 +63,10 @@ const props = defineProps({
             <div class="stat-gradient-1 rounded-2xl p-5 card-hover">
                 <div class="text-sm text-blue-100">Wallet Balance</div>
                 <div class="text-2xl font-bold text-white mt-1">
-                    Rs. {{ stats.wallet_balance.toFixed(2) }}
+                    £ {{ stats.wallet_balance.toFixed(2) }}
                 </div>
                 <div class="text-xs text-blue-200 mt-1">
-                    Available: Rs. {{ stats.available_balance.toFixed(2) }}
+                    Available: £ {{ stats.available_balance.toFixed(2) }}
                 </div>
             </div>
             <div class="stat-gradient-2 rounded-2xl p-5 card-hover">
@@ -81,7 +81,7 @@ const props = defineProps({
             <div class="stat-gradient-3 rounded-2xl p-5 card-hover">
                 <div class="text-sm text-blue-100">This Month</div>
                 <div class="text-2xl font-bold text-white mt-1">
-                    Rs. {{ stats.this_month_volume.toFixed(2) }}
+                    £ {{ stats.this_month_volume.toFixed(2) }}
                 </div>
                 <div class="text-xs text-blue-200 mt-1">
                     {{ stats.this_month_success }} successful
@@ -166,7 +166,7 @@ const props = defineProps({
                     </div>
                     <div class="text-right">
                         <div class="font-medium text-white">
-                            Rs. {{ txn.amount.toFixed(2) }}
+                            £ {{ txn.amount.toFixed(2) }}
                         </div>
                         <span
                             :class="[

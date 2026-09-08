@@ -47,7 +47,7 @@ const props = defineProps({
             <div class="bg-dark-800 rounded-2xl p-4 border border-dark-600">
                 <div class="text-sm text-blue-100">Total Volume</div>
                 <div class="text-xl font-bold text-primary-light">
-                    Rs. {{ Number(stats.total_volume).toFixed(2) }}
+                    £ {{ Number(stats.total_volume).toFixed(2) }}
                 </div>
             </div>
         </div>
@@ -186,7 +186,7 @@ const props = defineProps({
                             <td
                                 class="px-4 py-3 text-sm font-medium text-white"
                             >
-                                Rs. {{ Number(txn.amount).toFixed(2) }}
+                                £ {{ Number(txn.amount).toFixed(2) }}
                             </td>
                             <td class="px-4 py-3">
                                 <span

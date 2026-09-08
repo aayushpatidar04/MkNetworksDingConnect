@@ -90,7 +90,7 @@ const props = defineProps({ retailers: Object });
                             <td
                                 class="px-6 py-4 text-sm font-medium text-white"
                             >
-                                Rs.
+                                £
                                 {{
                                     Number(
                                         retailer.wallet?.balance || 0,

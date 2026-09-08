@@ -84,7 +84,7 @@ class SmsService
      */
     public function sendRechargeSuccess(string $phone, string $mobileNumber, float $amount, string $operator): bool
     {
-        $message = "Your recharge of Rs. {$amount} for {$mobileNumber} on {$operator} was successful. Thank you!";
+        $message = "Your recharge of £ {$amount} for {$mobileNumber} on {$operator} was successful. Thank you!";
         return $this->send($phone, $message);
     }
 
@@ -93,7 +93,7 @@ class SmsService
      */
     public function sendRechargeFailed(string $phone, string $mobileNumber, float $amount): bool
     {
-        $message = "Your recharge of Rs. {$amount} for {$mobileNumber} failed. Amount has been refunded to your wallet.";
+        $message = "Your recharge of £ {$amount} for {$mobileNumber} failed. Amount has been refunded to your wallet.";
         return $this->send($phone, $message);
     }
 

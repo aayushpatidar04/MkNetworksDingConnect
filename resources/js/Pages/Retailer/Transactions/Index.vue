@@ -124,7 +124,7 @@ const props = defineProps({ transactions: Object });
                             <td
                                 class="px-4 py-3 text-sm font-medium text-white"
                             >
-                                Rs. {{ Number(txn.amount).toFixed(2) }}
+                                £ {{ Number(txn.amount).toFixed(2) }}
                             </td>
                             <td class="px-4 py-3">
                                 <span

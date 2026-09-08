@@ -109,7 +109,7 @@ const creditForm = useForm({ amount: "", description: "" });
                             </div>
                             <div class="text-right">
                                 <div class="font-medium text-white">
-                                    Rs. {{ Number(txn.amount).toFixed(2) }}
+                                    £ {{ Number(txn.amount).toFixed(2) }}
                                 </div>
                                 <span
                                     :class="[
@@ -136,7 +136,7 @@ const creditForm = useForm({ amount: "", description: "" });
                         Wallet
                     </h3>
                     <div class="text-3xl font-bold text-primary-light">
-                        Rs.
+                        £
                         {{ Number(retailer.wallet?.balance || 0).toFixed(2) }}
                     </div>
                     <form

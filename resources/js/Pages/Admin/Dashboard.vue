@@ -43,7 +43,7 @@ const props = defineProps({
             <div class="stat-gradient-3 rounded-2xl p-5 card-hover">
                 <div class="text-sm text-blue-100">Today's Volume</div>
                 <div class="text-3xl font-bold text-white mt-1">
-                    Rs. {{ Number(stats.today_volume).toFixed(2) }}
+                    £ {{ Number(stats.today_volume).toFixed(2) }}
                 </div>
                 <div class="text-xs text-blue-200 mt-1">Recharge volume</div>
             </div>
@@ -161,7 +161,7 @@ const props = defineProps({
                         </div>
                         <div class="text-right">
                             <div class="text-sm font-medium text-white">
-                                Rs. {{ txn.amount.toFixed(2) }}
+                                £ {{ txn.amount.toFixed(2) }}
                             </div>
                             <span
                                 :class="[
