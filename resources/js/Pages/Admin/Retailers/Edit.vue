@@ -52,7 +52,7 @@ function submit() {
 <template>
     <Head :title="`Edit ${retailer?.name || 'Retailer'}`" />
     <div>
-        <div class="flex items-center gap-4 mb-8">
+        <div class="flex items-center justify-between gap-4 mb-8">
             <Link
                 :href="`/admin/retailers/${retailer.id}`"
                 class="text-dark-400 hover:text-white transition"

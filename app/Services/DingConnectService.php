@@ -209,7 +209,7 @@ class DingConnectService
             $data['SendCurrencyIso'] = $sendCurrencyIso;
         if ($receiveValue)
             $data['ReceiveValue'] = $receiveValue;
-        return $this->postForm('/api/V1/EstimatePrices', $data);
+        return $this->postJson('/api/V1/EstimatePrices', $data);
     }
 
     /**
@@ -256,7 +256,7 @@ class DingConnectService
         if ($accountNumber)
             $payload['AccountNumber'] = $accountNumber;
 
-        return $this->postForm('/api/V1/ListTransferRecords', $payload);
+        return $this->postJson('/api/V1/ListTransferRecords', $payload);
     }
 
     /**
@@ -268,7 +268,7 @@ class DingConnectService
         $payload = [
             'TransferId' => json_encode(['TransferRef' => $transferRef, 'DistributorRef' => $distributorRef]),
         ];
-        return $this->postForm('/api/V1/CancelTransfers', $payload);
+        return $this->postJson('/api/V1/CancelTransfers', $payload);
     }
 
     /**

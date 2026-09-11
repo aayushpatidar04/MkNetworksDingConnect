@@ -1,5 +1,5 @@
 <script setup>
-import { Head, router, useForm } from "@inertiajs/vue3";
+import { Head, useForm } from "@inertiajs/vue3";
 import RetailerLayout from "@/Layouts/RetailerLayout.vue";
 import { ref, onMounted, computed } from "vue";
 
@@ -20,11 +20,15 @@ const loadingProducts = ref(false);
 const mobileNumber = ref("");
 const submitting = ref(false);
 const errorMessage = ref("");
+const showPinModal = ref(false);
+const receiptText = ref("");
+const receiptNumber = ref("");
 
 const form = useForm({
     mobile_number: "",
     operator_id: "",
     country_id: "",
+    amount: 0,
     sku_code: "",
     send_value: 0,
     receive_value: 0,
@@ -33,6 +37,8 @@ const form = useForm({
     display_text: "",
     validity_period: "",
     benefits: [],
+    redemption_type: "Immediate",
+    product_type: "",
 });
 
 const canProceedToProvider = computed(() => !!selectedCountry.value);
@@ -107,6 +113,8 @@ function selectProduct(product) {
     form.display_text = product.display_text;
     form.validity_period = product.validity_period;
     form.benefits = product.benefits;
+    form.redemption_type = product.redemption_type || "Immediate";
+    form.product_type = product.product_type || "";
     currentStep.value = 4;
 }
 
@@ -168,9 +176,15 @@ function submitRecharge() {
     form.display_text = selectedProduct.value.display_text;
     form.validity_period = selectedProduct.value.validity_period;
     form.benefits = JSON.stringify(selectedProduct.value.benefits || []);
+    form.redemption_type = selectedProduct.value.redemption_type || "Immediate";
+    form.product_type = selectedProduct.value.product_type || "";
 
     form.post("/retailer/recharge", {
-        onSuccess: () => {},
+        onSuccess: () => {
+            if (selectedProduct.value.redemption_type === "ReadReceipt") {
+                showPinModal.value = true;
+            }
+        },
         onError: (errors) => {
             errorMessage.value = Object.values(errors)[0] || "Recharge failed";
             submitting.value = false;
@@ -180,6 +194,27 @@ function submitRecharge() {
         },
     });
 }
+
+function closePinModal() {
+    showPinModal.value = false;
+    receiptText.value = "";
+    receiptNumber.value = "";
+}
+
+onMounted(() => {
+    if (props.auth && props.auth.user) {
+        window.Echo.private(`user.${props.auth.user.id}`).listen(
+            ".recharge.success",
+            (e) => {
+                if (e.transaction && e.transaction.receipt_text) {
+                    receiptText.value = e.transaction.receipt_text;
+                    receiptNumber.value = e.transaction.receipt_number || "";
+                    showPinModal.value = true;
+                }
+            },
+        );
+    }
+});
 </script>
 
 <template>
@@ -484,7 +519,7 @@ function submitRecharge() {
                         >
                         <span class="font-semibold text-primary-light"
                             >{{ product.send_currency }}
-                            {{ (product.send_value || 0).toFixed(2) }}</span
+                            {{ product.send_value }}</span
                         >
                     </div>
                 </button>
@@ -519,111 +554,178 @@ function submitRecharge() {
             </div>
 
             <div
-                class="bg-dark-800 rounded-2xl border border-dark-600 p-6 space-y-6"
+                v-if="selectedProduct"
+                class="bg-dark-800 rounded-2xl p-6 border border-dark-600"
             >
-                <!-- Selected Plan Summary -->
-                <div class="bg-dark-700 rounded-xl p-4">
-                    <div class="text-xs text-dark-400 mb-2">Selected Plan</div>
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-12 h-12 bg-white rounded-lg flex items-center justify-center overflow-hidden"
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm text-dark-300 mb-2"
+                            >Mobile Number</label
                         >
-                            <img
-                                v-if="selectedOperator?.logo_url"
-                                :src="selectedOperator.logo_url"
-                                class="w-full h-full object-contain p-1"
-                            />
-                            <span v-else>📱</span>
-                        </div>
-                        <div>
-                            <div class="font-semibold text-white">
-                                {{ selectedOperator?.name }}
-                            </div>
-                            <div class="text-sm text-dark-300">
-                                {{ selectedProduct?.receive_currency }}
-                                {{ selectedProduct?.receive_value }} ·
-                                {{ selectedProduct?.display_text }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mobile Number Input -->
-                <div>
-                    <label class="block text-sm font-medium text-dark-200 mb-2"
-                        >Mobile Number</label
-                    >
-                    <div class="flex">
-                        <span
-                            class="bg-dark-700 border border-r-0 border-dark-600 rounded-l-lg px-4 py-3 text-white font-medium"
-                        >
-                            {{ selectedCountry?.calling_code }}
-                        </span>
                         <input
                             v-model="mobileNumber"
                             type="tel"
-                            placeholder="Enter mobile number"
-                            class="flex-1 border border-dark-600 rounded-r-lg px-4 py-3 bg-dark-700 text-white outline-none focus:border-primary"
-                            @input="
-                                mobileNumber = mobileNumber.replace(
-                                    /[^0-9]/g,
-                                    '',
-                                )
-                            "
+                            placeholder="07XXXXXXXXX"
+                            class="w-full bg-dark-700 border border-dark-600 rounded-xl px-4 py-3 text-white placeholder-dark-400 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                         />
                     </div>
-                    <p class="text-xs text-dark-400 mt-2">
-                        Enter number without country code
-                    </p>
+                    <div>
+                        <label class="block text-sm text-dark-300 mb-2"
+                            >Operator</label
+                        >
+                        <div class="text-white font-medium py-3">
+                            {{ selectedOperator?.name }}
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Price Summary -->
-                <div
-                    class="bg-primary/10 border border-primary/20 rounded-xl p-4 space-y-2"
-                >
+                <div class="bg-dark-700/50 rounded-xl p-4 mb-6 space-y-3">
                     <div class="flex justify-between text-sm">
-                        <span class="text-dark-300">Recharge value:</span>
-                        <span class="text-white font-medium"
-                            >{{ selectedProduct?.receive_currency }}
-                            {{ selectedProduct?.receive_value }}</span
-                        >
+                        <span class="text-dark-300">Product</span>
+                        <span class="text-white font-medium">{{
+                            selectedProduct.display_text || "Top Up"
+                        }}</span>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <span class="text-dark-300">Processing fee:</span>
-                        <span class="text-white">Free</span>
+                        <span class="text-dark-300">Receive Value</span>
+                        <span class="text-green-400 font-semibold">
+                            {{ selectedProduct.receive_currency }}
+                            {{ selectedProduct.receive_value }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-dark-300">You Pay</span>
+                        <span class="text-white font-semibold">
+                            {{ selectedProduct.send_currency }}
+                            {{ selectedProduct.send_value }}
+                        </span>
                     </div>
                     <div
-                        class="flex justify-between text-base font-bold border-t border-primary/20 pt-2"
+                        class="flex justify-between text-sm"
+                        v-if="selectedProduct.validity_period"
                     >
-                        <span class="text-white">Total charge:</span>
-                        <span class="text-primary-light"
-                            >{{ selectedProduct?.send_currency }}
+                        <span class="text-dark-300">Validity</span>
+                        <span class="text-white">
                             {{
-                                (selectedProduct?.send_value || 0).toFixed(2)
-                            }}</span
-                        >
+                                formatValidity(selectedProduct.validity_period)
+                            }}
+                        </span>
                     </div>
                     <div
-                        class="flex justify-between text-xs text-dark-400 pt-1"
+                        class="border-t border-dark-600 pt-3 flex justify-between"
                     >
-                        <span>Wallet balance:</span>
-                        <span
-                            >Available: £
-                            {{ Number(availableBalance || 0).toFixed(2) }}</span
-                        >
+                        <span class="text-white font-medium">Total</span>
+                        <span class="text-primary-light font-bold text-lg">
+                            {{ selectedProduct.send_currency }}
+                            {{ selectedProduct.send_value }}
+                        </span>
                     </div>
                 </div>
 
                 <button
                     @click="submitRecharge"
                     :disabled="submitting || !canProceedToConfirm"
-                    class="w-full py-4 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark disabled:opacity-50 transition text-base"
+                    class="w-full bg-primary hover:bg-primary-dark disabled:bg-dark-600 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition flex items-center justify-center gap-2"
                 >
-                    {{
-                        submitting
-                            ? "Processing Recharge..."
-                            : "Confirm & Recharge"
-                    }}
+                    <svg
+                        v-if="submitting"
+                        class="animate-spin h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                    >
+                        <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                        ></circle>
+                        <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                    </svg>
+                    <span>{{
+                        submitting ? "Processing..." : "Confirm & Pay"
+                    }}</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- PIN/Receipt Modal for ReadReceipt Products -->
+        <div
+            v-if="showPinModal"
+            class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+            @click.self="closePinModal"
+        >
+            <div
+                class="bg-dark-800 rounded-2xl p-6 max-w-md w-full border border-dark-600"
+            >
+                <div class="text-center mb-6">
+                    <div
+                        class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4"
+                    >
+                        <svg
+                            class="w-8 h-8 text-green-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M5 13l4 4L19 7"
+                            />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">
+                        Recharge Successful!
+                    </h3>
+                    <p class="text-dark-300 text-sm">
+                        Please provide the PIN below to your customer
+                    </p>
+                </div>
+
+                <div class="bg-dark-700/50 rounded-xl p-4 mb-6">
+                    <label class="block text-xs text-dark-400 mb-2">
+                        Receipt Number
+                    </label>
+                    <div class="text-white font-mono text-sm mb-4">
+                        {{ receiptNumber || "N/A" }}
+                    </div>
+
+                    <label class="block text-xs text-dark-400 mb-2">
+                        PIN / Voucher Code
+                    </label>
+                    <div
+                        class="bg-dark-900 rounded-lg p-4 border border-primary/30"
+                    >
+                        <code
+                            class="text-primary-light text-lg font-bold break-all"
+                        >
+                            {{ receiptText }}
+                        </code>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 mb-4"
+                >
+                    <p class="text-yellow-300 text-xs">
+                        <strong>Important:</strong> Share this PIN with your
+                        customer. They will need it to redeem the top-up on
+                        their device.
+                    </p>
+                </div>
+
+                <button
+                    @click="closePinModal"
+                    class="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-3 rounded-xl transition"
+                >
+                    I've Shared the PIN
                 </button>
             </div>
         </div>

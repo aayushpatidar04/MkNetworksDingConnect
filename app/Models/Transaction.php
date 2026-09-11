@@ -31,8 +31,11 @@ class Transaction extends Model
         'send_currency',
         'receive_currency',
         'display_text',
+        'receipt_text',
         'validity_period',
         'benefits',
+        'redemption_type',
+        'product_type',
     ];
 
     protected $casts = [

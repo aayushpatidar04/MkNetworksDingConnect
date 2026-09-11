@@ -60,16 +60,21 @@ class RechargeController extends Controller
                 'sku_code' => $item['SkuCode'],
                 'provider_code' => $item['ProviderCode'],
                 'display_text' => $item['DefaultDisplayText'] ?? '',
+                'localization_key' => $item['LocalizationKey'] ?? '',
                 'receive_value' => (float) ($item['Maximum']['ReceiveValue'] ?? 0),
                 'receive_currency' => $item['Maximum']['ReceiveCurrencyIso'] ?? '',
-                'send_value' => (float) ($item['Maximum']['SendValue'] ?? 0),
+                'send_value' => (float) ($item['Minimum']['SendValue'] ?? $item['Maximum']['SendValue'] ?? 0),
                 'send_currency' => $item['Maximum']['SendCurrencyIso'] ?? 'GBP',
                 'commission_rate' => (float) ($item['CommissionRate'] ?? 0),
+                'commission_applied' => (float) ($item['CommissionApplied'] ?? 0),
                 'validity_period' => $item['ValidityPeriodIso'] ?? '',
                 'benefits' => $item['Benefits'] ?? [],
                 'payment_types' => $item['PaymentTypes'] ?? [],
                 'processing_mode' => $item['ProcessingMode'] ?? 'Instant',
                 'region_code' => $item['RegionCode'] ?? '',
+                'redemption_type' => $item['RedemptionType'] ?? 'Immediate', // Immediate, ReadReceipt, Manual
+                'product_type' => $item['ProductType'] ?? '', // DirectTopUp, Bundle, Voucher, etc.
+                'requires_receipt' => in_array($item['RedemptionType'] ?? 'Immediate', ['ReadReceipt', 'Manual']),
             ];
         })->values();
 
@@ -106,6 +111,8 @@ class RechargeController extends Controller
             'receive_currency' => ['nullable', 'string', 'size:3'],
             'display_text' => ['nullable', 'string'],
             'validity_period' => ['nullable', 'string'],
+            'redemption_type' => ['nullable', 'string', 'in:Immediate,ReadReceipt,Manual'],
+            'product_type' => ['nullable', 'string'],
         ]);
 
         $user = $request->user();
@@ -145,6 +152,8 @@ class RechargeController extends Controller
                 'display_text' => $request->display_text,
                 'validity_period' => $request->validity_period,
                 'benefits' => json_decode($request->benefits, true) ?? [],
+                'redemption_type' => $request->redemption_type ?? 'Immediate',
+                'product_type' => $request->product_type ?? '',
                 'ding_order_reference' => $orderReference,
                 'receipt_number' => $receiptNumber,
                 'ip_address' => $request->ip(),

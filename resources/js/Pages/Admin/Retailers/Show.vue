@@ -11,25 +11,27 @@ const creditForm = useForm({ amount: "", description: "" });
 <template>
     <Head :title="`${retailer.name} - Retailer Details`" />
     <div class="space-y-6">
-        <div class="flex items-center gap-4">
+        <div class="flex items-center justify-between gap-4">
             <Link
                 href="/admin/retailers"
                 class="text-primary-light hover:text-primary transition"
                 >← Back to Retailers</Link
             >
-            <Link
-                :href="`/admin/retailers/${retailer.id}/edit`"
-                class="ml-4 px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition text-sm"
-                >Edit</Link
-            >
-
-            <div>
-                <h1 class="text-3xl font-bold text-white">
-                    {{ retailer.name }}
-                </h1>
-                <p class="text-dark-300">
-                    {{ retailer.email }} · {{ retailer.phone }}
-                </p>
+            <div class="flex gap-4 items-center">
+                <Link
+                    :href="`/admin/retailers/${retailer.id}/edit`"
+                    class="ml-4 px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition text-sm"
+                    >Edit</Link
+                >
+    
+                <div>
+                    <h1 class="text-3xl font-bold text-white">
+                        {{ retailer.name }}
+                    </h1>
+                    <p class="text-dark-300">
+                        {{ retailer.email }} · {{ retailer.phone }}
+                    </p>
+                </div>
             </div>
         </div>
 

@@ -90,7 +90,7 @@ class OperatorController extends Controller
         $countryCodes = Country::whereIn('iso_code', ['GB', 'IN'])->where('is_active', true)->pluck('iso_code')->filter()->values();
 
         $allowedProviders = [
-            'GB' => ['Orange United Kingdom', 'Vodafone United Kingdom', 'O2 United Kingdom', 'T-Mobile United Kingdom', 'Now Mobile United Kingdom', 'Virgin United Kingdom', 'BitDefender United Kingdom', 'Nandos United Kingdom', 'Lebara United Kingdom', 'giffgaff United Kingdom', 'Lyca Mobile United Kingdom', '3 United Kingdom'],
+            'GB' => ['Vodafone United Kingdom', 'O2 United Kingdom', 'Lebara United Kingdom', 'giffgaff United Kingdom', 'Lyca Mobile United Kingdom', '3 United Kingdom'],
             'IN' => ['Airtel India', 'Vi India', 'Jio India', 'BSNL India', 'MTNL India'],
         ];
 
