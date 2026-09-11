@@ -144,7 +144,7 @@ class RechargeController extends Controller
                 'receive_currency' => $request->receive_currency ?? 'GBP',
                 'display_text' => $request->display_text,
                 'validity_period' => $request->validity_period,
-                'benefits' => json_encode($request->benefits ?? []),
+                'benefits' => json_decode($request->benefits, true) ?? [],
                 'ding_order_reference' => $orderReference,
                 'receipt_number' => $receiptNumber,
                 'ip_address' => $request->ip(),

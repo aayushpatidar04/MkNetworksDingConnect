@@ -37,6 +37,7 @@ class Transaction extends Model
 
     protected $casts = [
         'ding_response' => 'array',
+        'benefits' => 'array',
         'callback_received' => 'boolean',
         'amount' => 'decimal:2',
         'send_value' => 'decimal:2',

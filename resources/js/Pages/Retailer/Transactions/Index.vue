@@ -1,5 +1,5 @@
 <script setup>
-import { Head, Link } from "@inertiajs/vue3";
+import { Head, Link, router } from "@inertiajs/vue3";
 import RetailerLayout from "@/Layouts/RetailerLayout.vue";
 defineOptions({ layout: RetailerLayout });
 
@@ -103,7 +103,7 @@ const props = defineProps({ transactions: Object });
                         <tr
                             v-for="txn in transactions.data"
                             :key="txn.id"
-                            class="hover:bg-dark-700 transition"
+                            class="hover:bg-dark-700 transition cursor-pointer" @click="router.visit(route('retailer.transactions.show', txn.id))"
                         >
                             <td
                                 class="px-4 py-3 text-sm font-mono text-primary-light"

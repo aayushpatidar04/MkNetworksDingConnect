@@ -47,7 +47,7 @@ const props = defineProps({
                     <p class="text-sm text-red-300 mt-1">
                         Your available balance (£
                         {{ stats.available_balance.toFixed(2) }}) is below the
-                        minimum threshold. Please top up to continue recharging.
+                        minimum threshold.
                     </p>
                     <a
                         href="/retailer/wallet"
